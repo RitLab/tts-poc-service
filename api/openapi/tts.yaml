@@ -1,0 +1,116 @@
+openapi: "3.0.3"
+
+info:
+  version: 1.0.0
+  title: Text-to-Speech API
+  description: A simple API for converting text to speech.
+  contact:
+    name: Ritlabs
+    url: ritlabs1404@gmail.com
+
+servers:
+  - url: http://{hostname}/api
+    variables:
+      hostname:
+        default: localhost:7075
+
+paths:
+  /tts:
+    post:
+      summary: Convert text to speech
+      operationId: textToSpeech
+      requestBody:
+        description: Text input for conversion
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TtsRequest'
+      responses:
+        '200':
+          description: File path text to speech response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TtsResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /tts/read:
+    post:
+      summary: Convert text to speech and response with sound
+      operationId: readTextToSpeech
+      requestBody:
+        description: Text input for conversion with sound
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TtsRequest'
+      responses:
+        '200':
+          description: File path text to speech response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TtsResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    TtsRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          example: "Hello World!"
+        lang:
+          type: string
+          example: "id"
+          description: Language code for the speech (e.g., "en" for English, "id" for Indonesian).
+          default: "id"
+
+    TtsResponse:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          example: "https://link.to.sound"
+
+    Error:
+      type: object
+      required:
+        - slug
+        - message
+      properties:
+        slug:
+          type: string
+          example: "bad-request"
+        message:
+          type: string
+          example: "unexpected error"

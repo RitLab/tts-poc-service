@@ -1,0 +1,94 @@
+version: "3.9"
+services:
+  tts:
+    image: "ritlab/tts:dev"
+    restart: on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=tts-traefik"
+      - "traefik.http.routers.tts.rule=Host(`ritlab.biz.id`) && PathPrefix(`/api/tts`)"
+      - "traefik.http.services.tts.loadbalancer.server.port=7075"
+      - "traefik.http.routers.tts.entrypoints=websecure"
+      - "traefik.http.routers.tts.tls.certresolver=myresolver"
+    depends_on:
+      - minio
+    ports:
+      - "7075:7075"
+    expose:
+      - '7075'
+    networks:
+      - tts-storage
+      - tts-traefik
+
+  traefik:
+    image: "traefik:v3.0"
+    container_name: "traefik"
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.websecure.address=:443"
+      - "--entryPoints.websecure.transport.respondingTimeouts.readTimeout=0"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=ritlab1404@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--providers.docker.network=tts-traefik"
+      - "--providers.docker.httpClientTimeout=300"
+      #- "--entrypoints.web.address=:80"
+    ports:
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/local/letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - tts-traefik
+
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9001"
+    restart: on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=tts-traefik"
+
+      - "traefik.http.routers.minio.service=minio"
+      - "traefik.http.routers.minio.rule=Host(`storage.ritlab.biz.id`)"
+      - "traefik.http.services.minio.loadbalancer.server.port=9000"
+      - "traefik.http.routers.minio.entrypoints=websecure"
+      - "traefik.http.routers.minio.tls.certresolver=myresolver"
+
+      - "traefik.http.routers.minioconsole.service=minioconsole"
+      - "traefik.http.routers.minioconsole.rule=Host(`storage-admin.ritlab.biz.id`)"
+      - "traefik.http.services.minioconsole.loadbalancer.server.port=9001"
+      - "traefik.http.routers.minioconsole.entrypoints=websecure"
+      - "traefik.http.routers.minioconsole.tls.certresolver=myresolver"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_DEFAULT_BUCKETS=tts
+    volumes:
+      - /var/local/minio:/data
+    ports:
+      - 9000:9000
+      - 9001:9001
+    expose:
+      - '9000'
+      - '9001'
+    networks:
+      - tts-storage
+      - tts-traefik
+
+networks:
+  tts-storage:
+    external: true
+    name: tts-storage
+  tts-traefik:
+    external: true
+    name: tts-traefik
+
+volumes:
+  db:
+    driver: local
