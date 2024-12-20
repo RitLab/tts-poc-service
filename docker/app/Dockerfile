@@ -1,6 +1,9 @@
 # Stage 1: Builder
 FROM golang:1.23-bullseye AS builder
 
+LABEL maintainer="backend-ritlab"
+LABEL description="Golang Service for handling Text to Speech"
+
 # Install dependencies for ALSA
 RUN apt-get update && apt-get install -y \
     libasound2-dev \
