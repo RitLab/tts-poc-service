@@ -47,7 +47,7 @@ services:
       - tts-traefik
 
   minio:
-    image: quay.io/minio/minio
+    image: quay.io/minio/minio:RELEASE.2023-11-01T01-57-10Z-cpuv1
     command: server /data --console-address ":9001"
     restart: on-failure
     labels:
