@@ -8,7 +8,7 @@ services:
       - "traefik.docker.network=tts-traefik"
       - "traefik.http.routers.tts.rule=Host(`ritlab.biz.id`) && PathPrefix(`/api/tts`)"
       - "traefik.http.services.tts.loadbalancer.server.port=7075"
-      - "traefik.http.routers.tts.entrypoints=websecure"
+      - "traefik.http.routers.tts.entrypoints=web,websecure"
       - "traefik.http.routers.tts.tls.certresolver=myresolver"
     depends_on:
       - minio
@@ -31,12 +31,13 @@ services:
       - "--entryPoints.websecure.address=:443"
       - "--entryPoints.websecure.transport.respondingTimeouts.readTimeout=0"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.myresolver.acme.email=ritlab1404@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       - "--providers.docker.network=tts-traefik"
       - "--providers.docker.httpClientTimeout=300"
-      #- "--entrypoints.web.address=:80"
+      - "--entrypoints.web.address=:80"
     ports:
       - "443:443"
       - "8080:8080"
@@ -57,7 +58,7 @@ services:
       - "traefik.http.routers.minio.service=minio"
       - "traefik.http.routers.minio.rule=Host(`storage.ritlab.biz.id`)"
       - "traefik.http.services.minio.loadbalancer.server.port=9000"
-      - "traefik.http.routers.minio.entrypoints=websecure"
+      - "traefik.http.routers.minio.entrypoints=web,websecure"
       - "traefik.http.routers.minio.tls.certresolver=myresolver"
 
       - "traefik.http.routers.minioconsole.service=minioconsole"
