@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y \
     libasound2-dev \
     build-essential \
     pkg-config \
+    build-base \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables for CGO
@@ -39,6 +41,8 @@ ENV APP_ENV=${PROFILE}
 # Install runtime dependencies for ALSA
 RUN apt-get update && apt-get install -y \
     libasound2 \
+    ca-certificates \
+    build-base \
     && rm -rf /var/lib/apt/lists/*
 
 EXPOSE ${SERVICE_PORT}

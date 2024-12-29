@@ -61,8 +61,6 @@ services:
       - "traefik.http.services.minio.loadbalancer.server.port=9000"
       - "traefik.http.routers.minio.entrypoints=websecure"
       - "traefik.http.routers.minio.tls.certresolver=myresolver"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.minio.middlewares=redirect-to-https@docker"
 
       - "traefik.http.routers.minioconsole.service=minioconsole"
       - "traefik.http.routers.minioconsole.rule=Host(`storage-admin.ritlab.biz.id`)"
