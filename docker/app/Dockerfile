@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y \
     libasound2-dev \
     build-essential \
     pkg-config \
-    build-base \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
@@ -42,7 +41,6 @@ ENV APP_ENV=${PROFILE}
 RUN apt-get update && apt-get install -y \
     libasound2 \
     ca-certificates \
-    build-base \
     && rm -rf /var/lib/apt/lists/*
 
 EXPOSE ${SERVICE_PORT}
