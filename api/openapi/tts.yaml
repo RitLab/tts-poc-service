@@ -9,7 +9,7 @@ info:
     url: ritlabs1404@gmail.com
 
 servers:
-  - url: http://{hostname}/api
+  - url: https://{hostname}/api
     variables:
       hostname:
         default: localhost:7075

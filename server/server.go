@@ -86,21 +86,21 @@ func NewServer(ctx context.Context) Server {
 	mid := New(dep.logger)
 	setMiddleware(srvc, dep, mid)
 
+	root := srvc.Group("/api/tts")
+
 	// Serve OpenAPI Specification
 	srvc.GET("/openapi.yaml", func(c echo.Context) error {
 		return c.File("api/openapi/tts.yaml")
 	})
 
 	// Serve Swagger UI Static Files
-	srvc.Static("/swagger-ui", "public/swagger-ui")
+	root.Static("/swagger-ui", "public/swagger-ui")
 
 	// Redirect to Swagger UI with OpenAPI Specification URL
-	srvc.GET("/docs", func(c echo.Context) error {
-		redirectURL := "/swagger-ui/index.html?url=/openapi.yaml"
+	root.GET("/docs", func(c echo.Context) error {
+		redirectURL := "/api/tts/swagger-ui/index.html?url=/openapi.yaml"
 		return c.Redirect(http.StatusMovedPermanently, redirectURL)
 	})
-
-	root := srvc.Group("/api/tts")
 
 	// general api
 	root.GET("/health-check", hndler.HealthCheck.HealthCheck)
