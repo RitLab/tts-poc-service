@@ -89,7 +89,7 @@ func NewServer(ctx context.Context) Server {
 	root := srvc.Group("/api/tts")
 
 	// Serve OpenAPI Specification
-	srvc.GET("/openapi.yaml", func(c echo.Context) error {
+	root.GET("/openapi.yaml", func(c echo.Context) error {
 		return c.File("api/openapi/tts.yaml")
 	})
 
@@ -98,7 +98,7 @@ func NewServer(ctx context.Context) Server {
 
 	// Redirect to Swagger UI with OpenAPI Specification URL
 	root.GET("/docs", func(c echo.Context) error {
-		redirectURL := "/api/tts/swagger-ui/index.html?url=/openapi.yaml"
+		redirectURL := "/api/tts/swagger-ui/index.html?url=/api/tts/openapi.yaml"
 		return c.Redirect(http.StatusMovedPermanently, redirectURL)
 	})
 
