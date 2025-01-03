@@ -24,26 +24,33 @@ func (p *Player) Save(text, lang string) ([]string, error) {
 	}
 	out := make([]string, 0)
 	if len(text) > 100 {
-		splitText := strings.Split(text, " ")
+		splitSentences := strings.Split(text, ".")
 		totalIter := make([]string, 0)
+		for _, sentence := range splitSentences {
+			if len(sentence) > 100 {
+				splitText := strings.Split(sentence, " ")
 
-		totalText := 0
-		eachIter := make([]string, 0)
-		for i := range splitText {
-			if i == len(splitText)-1 {
-				eachIter = append(eachIter, splitText[i])
-				newIter := strings.Join(eachIter, " ")
-				totalIter = append(totalIter, newIter)
-			} else if totalText+len(splitText[i]) < 100 {
-				eachIter = append(eachIter, splitText[i])
-				totalText += len(splitText[i])
+				totalText := 0
+				eachIter := make([]string, 0)
+				for i := range splitText {
+					if i == len(splitText)-1 {
+						eachIter = append(eachIter, splitText[i])
+						newIter := strings.Join(eachIter, " ")
+						totalIter = append(totalIter, newIter)
+					} else if totalText+len(splitText[i]) < 100 {
+						eachIter = append(eachIter, splitText[i])
+						totalText += len(splitText[i])
+					} else {
+						newIter := strings.Join(eachIter, " ")
+						totalIter = append(totalIter, newIter)
+
+						eachIter = make([]string, 0)
+						eachIter = append(eachIter, splitText[i])
+						totalText = len(splitText[i])
+					}
+				}
 			} else {
-				newIter := strings.Join(eachIter, " ")
-				totalIter = append(totalIter, newIter)
-
-				eachIter = make([]string, 0)
-				eachIter = append(eachIter, splitText[i])
-				totalText = len(splitText[i])
+				totalIter = append(totalIter, sentence)
 			}
 		}
 
@@ -73,26 +80,33 @@ func (p *Player) Play(text, lang string) error {
 	}
 
 	if len(text) > 100 {
-		splitText := strings.Split(text, " ")
+		splitSentences := strings.Split(text, ".")
 		totalIter := make([]string, 0)
+		for _, sentence := range splitSentences {
+			if len(sentence) > 100 {
+				splitText := strings.Split(text, " ")
 
-		totalText := 0
-		eachIter := make([]string, 0)
-		for i := range splitText {
-			if i == len(splitText)-1 {
-				eachIter = append(eachIter, splitText[i])
-				newIter := strings.Join(eachIter, " ")
-				totalIter = append(totalIter, newIter)
-			} else if totalText+len(splitText[i]) < 100 {
-				eachIter = append(eachIter, splitText[i])
-				totalText += len(splitText[i])
+				totalText := 0
+				eachIter := make([]string, 0)
+				for i := range splitText {
+					if i == len(splitText)-1 {
+						eachIter = append(eachIter, splitText[i])
+						newIter := strings.Join(eachIter, " ")
+						totalIter = append(totalIter, newIter)
+					} else if totalText+len(splitText[i]) < 100 {
+						eachIter = append(eachIter, splitText[i])
+						totalText += len(splitText[i])
+					} else {
+						newIter := strings.Join(eachIter, " ")
+						totalIter = append(totalIter, newIter)
+
+						eachIter = make([]string, 0)
+						eachIter = append(eachIter, splitText[i])
+						totalText = len(splitText[i])
+					}
+				}
 			} else {
-				newIter := strings.Join(eachIter, " ")
-				totalIter = append(totalIter, newIter)
-
-				eachIter = make([]string, 0)
-				eachIter = append(eachIter, splitText[i])
-				totalText = len(splitText[i])
+				totalIter = append(totalIter, sentence)
 			}
 		}
 
