@@ -51,6 +51,7 @@ WORKDIR /app
 # Copy the built executable from the builder stage
 COPY --from=builder /app/tts /app/
 COPY --from=builder /app/audio/ /app/audio
+COPY --from=builder /app/public /app/public
 
 # Set the entrypoint
 CMD ["./tts"]
