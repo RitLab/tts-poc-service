@@ -20,7 +20,7 @@ type GetTextToSpeechFileQuery struct {
 }
 
 type GetTextToSpeechFileResponse struct {
-	Url string
+	Url string `json:"url"`
 }
 
 type GetTextToSpeechHandler decorator.QueryHandler[GetTextToSpeechFileQuery, GetTextToSpeechFileResponse]

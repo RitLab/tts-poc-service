@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"time"
 	"tts-poc-service/config"
 	"tts-poc-service/lib/baselogger"
+	"tts-poc-service/lib/database"
 	"tts-poc-service/lib/htgo"
 	"tts-poc-service/lib/storage"
 	"tts-poc-service/lib/validator"
@@ -17,6 +19,8 @@ import (
 	configApp "tts-poc-service/pkg/config/app"
 	configHandler "tts-poc-service/pkg/config/handler"
 	healthHandler "tts-poc-service/pkg/health_check/handler"
+	supportApp "tts-poc-service/pkg/support/app"
+	supportHandler "tts-poc-service/pkg/support/handlers"
 	"tts-poc-service/pkg/tts/app"
 	"tts-poc-service/pkg/tts/handlers"
 
@@ -24,26 +28,25 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-const (
-	DBInitFile = "./migration/init.sql"
-)
-
 type Handler struct {
-	HealthCheck  healthHandler.HealthCheckHandler
-	ConfigServer configHandler.ConfigServerHandler
-	TtsService   handlers.ServerInterface
+	HealthCheck    healthHandler.HealthCheckHandler
+	ConfigServer   configHandler.ConfigServerHandler
+	TtsService     handlers.ServerInterface
+	SupportService supportHandler.ServerInterface
 }
 
 func setHandler(dep Dependency) Handler {
 	return Handler{
-		HealthCheck:  healthHandler.NewHealthCheckHandler(time.Now()),
-		ConfigServer: configHandler.NewConfigHttpHandler(dep.logger, configApp.NewConfigService(dep.logger)),
-		TtsService:   handlers.NewTtsServer(app.NewTtsService(dep.logger, dep.player, dep.storage)),
+		HealthCheck:    healthHandler.NewHealthCheckHandler(time.Now()),
+		ConfigServer:   configHandler.NewConfigHttpHandler(dep.logger, configApp.NewConfigService(dep.logger)),
+		TtsService:     handlers.NewTtsServer(app.NewTtsService(dep.logger, dep.player, dep.storage)),
+		SupportService: supportHandler.NewSupportServer(supportApp.NewSupportService(dep.logger, dep.db)),
 	}
 }
 
 type Dependency struct {
 	logger  *baselogger.Logger
+	db      *sql.DB
 	player  htgo.Player
 	storage storage.Storage
 	val     *validator.Validator
@@ -59,9 +62,11 @@ func newDependency(ctx context.Context) Dependency {
 
 	s3 := storage.NewMinioHandler(logger)
 	player := htgo.Player{}
+	db := database.NewSqlHandler(logger, config.Config)
 
 	return Dependency{
 		logger:  logger,
+		db:      db,
 		player:  player,
 		storage: s3,
 		val:     val,
@@ -107,9 +112,8 @@ func NewServer(ctx context.Context) Server {
 	root.POST("/config/reload", hndler.ConfigServer.ReloadConfig)
 	root.GET("/config", hndler.ConfigServer.GetConfig)
 
-	// tts
-	root.POST("", hndler.TtsService.TextToSpeech)
-	root.POST("/read", hndler.TtsService.ReadTextToSpeech)
+	handlers.RegisterHandlers(srvc, hndler.TtsService)
+	supportHandler.RegisterHandlers(srvc, hndler.SupportService)
 
 	srvr := &http.Server{
 		Addr:         fmt.Sprintf(":%d", config.Config.Server.Port),
@@ -137,6 +141,12 @@ func (s *server) HandleShutdown(ctx context.Context) context.Context {
 		<-quit
 		signal.Stop(quit)
 		close(quit)
+
+		if err := s.db.Close(); err != nil {
+			s.logger.Errorf("could not gracefully shutdown database: %v", err)
+		} else {
+			s.logger.Info("database connection is shutting down")
+		}
 
 		if err := s.Shutdown(ctx); err != nil {
 			s.logger.Errorf("could not gracefully shutdown the api server")

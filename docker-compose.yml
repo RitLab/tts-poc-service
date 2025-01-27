@@ -8,7 +8,7 @@ services:
       - "traefik.docker.network=tts-traefik"
       - "traefik.http.routers.tts.rule=Host(`ritlab.biz.id`) && PathPrefix(`/api/tts`)"
       - "traefik.http.services.tts.loadbalancer.server.port=7075"
-      - "traefik.http.routers.tts.entrypoints=web,websecure"
+      - "traefik.http.routers.tts.entrypoints=websecure"
       - "traefik.http.routers.tts.tls.certresolver=myresolver"
     depends_on:
       - minio
@@ -82,6 +82,23 @@ services:
     networks:
       - tts-storage
       - tts-traefik
+
+  db:
+    image: mysql:latest
+    restart: on-failure
+    environment:
+      MYSQL_ROOT_PASSWORD: "password"
+      MYSQL_DATABASE: "tts"
+      MYSQL_USER: "app_user"
+      MYSQL_PASSWORD: "superuser"
+    ports:
+      - "3306:3306"
+    expose:
+      - '3306'
+    volumes:
+      - ~/data_tts:/var/lib/mysql
+    networks:
+      - tts-storage
 
 networks:
   tts-storage:

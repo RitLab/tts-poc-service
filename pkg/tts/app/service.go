@@ -14,6 +14,7 @@ type TtService struct {
 type TtsQueries struct {
 	ReadTextToSpeechHandler query.ReadTextToSpeechHandler
 	GetTextToSpeechHandler  query.GetTextToSpeechHandler
+	JoinMp3FilesHandler     query.JoinMp3FilesHandler
 }
 
 func NewTtsService(log *baselogger.Logger, player htgo.Player, s3 storage.Storage) TtService {
@@ -21,6 +22,7 @@ func NewTtsService(log *baselogger.Logger, player htgo.Player, s3 storage.Storag
 		Queries: TtsQueries{
 			ReadTextToSpeechHandler: query.NewReadTextToSpeechRepository(player, log),
 			GetTextToSpeechHandler:  query.NewGetTextToSpeechRepository(s3, player, log),
+			JoinMp3FilesHandler:     query.NewJoinMp3FilesRepository(s3, log),
 		},
 	}
 }

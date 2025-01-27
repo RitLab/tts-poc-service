@@ -45,3 +45,24 @@ func (t ttsServer) ReadTextToSpeech(c echo.Context) (err error) {
 	}
 	return response.SuccessResponse(c, http.StatusOK, nil)
 }
+
+func (t ttsServer) JoinMP3Files(c echo.Context) (err error) {
+	ctx := c.Request().Context()
+	// Parse the multipart form, with a maximum memory of 10MB.
+	err = c.Request().ParseMultipartForm(10 << 20) // 10MB
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	files := form.File["files"]
+	out, err := t.apps.Queries.JoinMp3FilesHandler.Handle(ctx, query.JoinMp3FilesQuery{Files: files})
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, out)
+}

@@ -9,15 +9,9 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Convert text to speech
-	// (POST /api/tts)
-	TextToSpeech(ctx echo.Context) error
-	// Join mp3 file into one file
-	// (POST /api/tts/join)
-	JoinMP3Files(ctx echo.Context) error
-	// Convert text to speech and response with sound
-	// (POST /api/tts/read)
-	ReadTextToSpeech(ctx echo.Context) error
+	// Insert support support API
+	// (POST /api/tts/support)
+	InsertSupport(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -25,30 +19,12 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// TextToSpeech converts echo context to params.
-func (w *ServerInterfaceWrapper) TextToSpeech(ctx echo.Context) error {
+// InsertSupport converts echo context to params.
+func (w *ServerInterfaceWrapper) InsertSupport(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.TextToSpeech(ctx)
-	return err
-}
-
-// JoinMP3Files converts echo context to params.
-func (w *ServerInterfaceWrapper) JoinMP3Files(ctx echo.Context) error {
-	var err error
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.JoinMP3Files(ctx)
-	return err
-}
-
-// ReadTextToSpeech converts echo context to params.
-func (w *ServerInterfaceWrapper) ReadTextToSpeech(ctx echo.Context) error {
-	var err error
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ReadTextToSpeech(ctx)
+	err = w.Handler.InsertSupport(ctx)
 	return err
 }
 
@@ -80,8 +56,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.POST(baseURL+"/api/tts", wrapper.TextToSpeech)
-	router.POST(baseURL+"/api/tts/join", wrapper.JoinMP3Files)
-	router.POST(baseURL+"/api/tts/read", wrapper.ReadTextToSpeech)
+	router.POST(baseURL+"/api/tts/support", wrapper.InsertSupport)
 
 }

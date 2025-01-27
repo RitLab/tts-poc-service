@@ -17,6 +17,18 @@
         },
         "status": 400
     },
+    "file_extension_not_supported": {
+        "body": {
+            "message": "file extension is not supported"
+        },
+        "status": 400
+    },
+    "file_is_empty": {
+        "body": {
+            "message": "file is empty"
+        },
+        "status": 400
+    },
     "invalid_date_format" :{
         "body": {
             "message": "invalid date format"

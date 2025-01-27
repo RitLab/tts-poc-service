@@ -50,7 +50,7 @@ type MinioHandler struct {
 func NewMinioHandler(log *baselogger.Logger) (mapStorages Storage) {
 	minioClient, err := minio.New(config.Config.Storage.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.Config.Storage.AccessKey, config.Config.Storage.SecretAccessKey, ""),
-		Secure: true,
+		Secure: false,
 	})
 	if err != nil {
 		log.Fatal(err)

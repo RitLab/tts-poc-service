@@ -13,9 +13,10 @@ import (
 var Config *Cfg
 
 type Cfg struct {
-	Server  Server  `json:"server"`
-	General General `json:"general"`
-	Storage S3      `json:"storage"`
+	Server   Server   `json:"server"`
+	General  General  `json:"general"`
+	Storage  S3       `json:"storage"`
+	Database Database `json:"database"`
 
 	mutex sync.RWMutex
 }
@@ -38,6 +39,18 @@ type S3 struct {
 	SecretAccessKey string `json:"secret_access_key"`
 	BucketName      string `json:"bucket_name"`
 	FileDuration    int    `json:"file_duration"`
+}
+
+type Database struct {
+	Host        string           `json:"host"`
+	DbName      string           `json:"db_name"`
+	User        string           `json:"user"`
+	Password    string           `json:"password"`
+	Port        string           `json:"port"`
+	MaxConn     int              `json:"max_connection"`
+	MaxIdle     int              `json:"max_idle"`
+	MaxLifetime pkgUtil.Duration `json:"max_lifetime"`
+	MaxIdletime pkgUtil.Duration `json:"max_idletime"`
 }
 
 //go:embed *
