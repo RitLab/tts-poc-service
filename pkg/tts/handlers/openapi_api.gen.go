@@ -15,6 +15,9 @@ type ServerInterface interface {
 	// Join mp3 file into one file
 	// (POST /api/tts/join)
 	JoinMP3Files(ctx echo.Context) error
+	// Join pdf file into one file
+	// (POST /api/tts/join-pdf)
+	JoinPdfFiles(ctx echo.Context) error
 	// Convert text to speech and response with sound
 	// (POST /api/tts/read)
 	ReadTextToSpeech(ctx echo.Context) error
@@ -40,6 +43,15 @@ func (w *ServerInterfaceWrapper) JoinMP3Files(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.JoinMP3Files(ctx)
+	return err
+}
+
+// JoinPdfFiles converts echo context to params.
+func (w *ServerInterfaceWrapper) JoinPdfFiles(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.JoinPdfFiles(ctx)
 	return err
 }
 
@@ -82,6 +94,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.POST(baseURL+"/api/tts", wrapper.TextToSpeech)
 	router.POST(baseURL+"/api/tts/join", wrapper.JoinMP3Files)
+	router.POST(baseURL+"/api/tts/join-pdf", wrapper.JoinPdfFiles)
 	router.POST(baseURL+"/api/tts/read", wrapper.ReadTextToSpeech)
 
 }

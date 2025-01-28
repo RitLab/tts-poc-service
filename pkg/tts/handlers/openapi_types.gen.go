@@ -18,6 +18,11 @@ type JoinMP3Files struct {
 	Files []openapi_types.File `json:"files"`
 }
 
+// JoinPdfFiles defines model for JoinPdfFiles.
+type JoinPdfFiles struct {
+	Files []openapi_types.File `json:"files"`
+}
+
 // Success defines model for Success.
 type Success struct {
 	Message string `json:"message"`
@@ -42,6 +47,9 @@ type TextToSpeechJSONRequestBody = TtsRequest
 
 // JoinMP3FilesMultipartRequestBody defines body for JoinMP3Files for multipart/form-data ContentType.
 type JoinMP3FilesMultipartRequestBody = JoinMP3Files
+
+// JoinPdfFilesMultipartRequestBody defines body for JoinPdfFiles for multipart/form-data ContentType.
+type JoinPdfFilesMultipartRequestBody = JoinPdfFiles
 
 // ReadTextToSpeechJSONRequestBody defines body for ReadTextToSpeech for application/json ContentType.
 type ReadTextToSpeechJSONRequestBody = TtsRequest

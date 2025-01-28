@@ -95,6 +95,9 @@ type ClientInterface interface {
 	// JoinMP3FilesWithBody request with any body
 	JoinMP3FilesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// JoinPdfFilesWithBody request with any body
+	JoinPdfFilesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ReadTextToSpeechWithBody request with any body
 	ReadTextToSpeechWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -127,6 +130,18 @@ func (c *Client) TextToSpeech(ctx context.Context, body TextToSpeechJSONRequestB
 
 func (c *Client) JoinMP3FilesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewJoinMP3FilesRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) JoinPdfFilesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewJoinPdfFilesRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -211,6 +226,35 @@ func NewJoinMP3FilesRequestWithBody(server string, contentType string, body io.R
 	}
 
 	operationPath := fmt.Sprintf("/api/tts/join")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewJoinPdfFilesRequestWithBody generates requests for JoinPdfFiles with any type of body
+func NewJoinPdfFilesRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/tts/join-pdf")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -321,6 +365,9 @@ type ClientWithResponsesInterface interface {
 	// JoinMP3FilesWithBodyWithResponse request with any body
 	JoinMP3FilesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*JoinMP3FilesResponse, error)
 
+	// JoinPdfFilesWithBodyWithResponse request with any body
+	JoinPdfFilesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*JoinPdfFilesResponse, error)
+
 	// ReadTextToSpeechWithBodyWithResponse request with any body
 	ReadTextToSpeechWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ReadTextToSpeechResponse, error)
 
@@ -375,6 +422,30 @@ func (r JoinMP3FilesResponse) StatusCode() int {
 	return 0
 }
 
+type JoinPdfFilesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *TtsResponse
+	JSON400      *Error
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r JoinPdfFilesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r JoinPdfFilesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ReadTextToSpeechResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -423,6 +494,15 @@ func (c *ClientWithResponses) JoinMP3FilesWithBodyWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseJoinMP3FilesResponse(rsp)
+}
+
+// JoinPdfFilesWithBodyWithResponse request with arbitrary body returning *JoinPdfFilesResponse
+func (c *ClientWithResponses) JoinPdfFilesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*JoinPdfFilesResponse, error) {
+	rsp, err := c.JoinPdfFilesWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseJoinPdfFilesResponse(rsp)
 }
 
 // ReadTextToSpeechWithBodyWithResponse request with arbitrary body returning *ReadTextToSpeechResponse
@@ -491,6 +571,46 @@ func ParseJoinMP3FilesResponse(rsp *http.Response) (*JoinMP3FilesResponse, error
 	}
 
 	response := &JoinMP3FilesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest TtsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseJoinPdfFilesResponse parses an HTTP response from a JoinPdfFilesWithResponse call
+func ParseJoinPdfFilesResponse(rsp *http.Response) (*JoinPdfFilesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &JoinPdfFilesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

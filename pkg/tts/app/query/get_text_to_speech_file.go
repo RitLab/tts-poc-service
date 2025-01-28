@@ -63,7 +63,7 @@ func (g getTextToSpeechRepository) Handle(ctx context.Context, in GetTextToSpeec
 		}
 	}
 
-	err = g.s3.PutObject(ctx, &storage.PutFileRequest{Path: outputFile})
+	err = g.s3.PutObject(ctx, &storage.PutFileRequest{Path: outputFile, ContentType: "audio/mpeg"})
 	if err != nil {
 		g.logger.Hashcode(ctx).Error(fmt.Errorf("error put file: %w", err))
 		return GetTextToSpeechFileResponse{}, err

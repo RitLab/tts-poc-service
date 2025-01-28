@@ -111,6 +111,40 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/tts/join-pdf:
+    post:
+      summary: Join pdf file into one file
+      operationId: joinPdfFiles
+      requestBody:
+        description: Join pdf file multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JoinPdfFiles'
+            encoding:
+              files:
+                contentType: audio/mpeg
+      responses:
+        '201':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TtsResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
     TtsRequest:
@@ -148,23 +182,16 @@ components:
             format: binary
             type: string
 
-    SupportRequest:
+    JoinPdfFiles:
       type: object
       required:
-        - name
-        - email
-        - message
+        - files
       properties:
-        name:
-          type: string
-          example: "User Name"
-        email:
-          type: string
-          example: "example@test.com"
-        message:
-          type: string
-          example: "This is message!"
-          description: Input message for support support
+        files:
+          type: array
+          items:
+            format: binary
+            type: string
 
     Success:
       type: object

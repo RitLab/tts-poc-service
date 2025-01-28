@@ -32,7 +32,8 @@ type PutObjectRequest struct {
 }
 
 type PutFileRequest struct {
-	Path string
+	Path        string
+	ContentType string
 }
 
 type GetObjectRequest struct {
@@ -104,7 +105,7 @@ func (m *MinioHandler) PutObject(ctx context.Context, input *PutFileRequest) err
 	//
 	//contentType := http.DetectContentType(buffer)
 
-	info, err := m.minio.PutObject(ctx, m.bucketName, input.Path, file, fileSize, minio.PutObjectOptions{ContentType: "audio/mpeg"})
+	info, err := m.minio.PutObject(ctx, m.bucketName, input.Path, file, fileSize, minio.PutObjectOptions{ContentType: input.ContentType})
 	if err != nil {
 		m.log.Error(err)
 		return err

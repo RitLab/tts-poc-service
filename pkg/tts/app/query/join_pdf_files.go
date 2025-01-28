@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"io"
 	"mime/multipart"
 	"os"
@@ -15,35 +16,35 @@ import (
 	"tts-poc-service/pkg/tts/domain"
 )
 
-type JoinMp3FilesQuery struct {
+type JoinPdfFilesQuery struct {
 	Files []*multipart.FileHeader
 }
 
-type JoinMp3FilesResponse struct {
+type JoinPdfFilesResponse struct {
 	Url string `json:"url"`
 }
 
-type JoinMp3FilesHandler decorator.QueryHandler[JoinMp3FilesQuery, JoinMp3FilesResponse]
+type JoinPdfFilesHandler decorator.QueryHandler[JoinPdfFilesQuery, JoinPdfFilesResponse]
 
-type joinMp3FilesRepository struct {
+type joinPdfFilesRepository struct {
 	s3     storage.Storage
 	logger *baselogger.Logger
 }
 
-func NewJoinMp3FilesRepository(s3 storage.Storage, log *baselogger.Logger) decorator.QueryHandler[JoinMp3FilesQuery, JoinMp3FilesResponse] {
-	return decorator.ApplyQueryDecorators[JoinMp3FilesQuery, JoinMp3FilesResponse](
-		joinMp3FilesRepository{s3: s3, logger: log},
+func NewJoinPdfFilesRepository(s3 storage.Storage, log *baselogger.Logger) decorator.QueryHandler[JoinPdfFilesQuery, JoinPdfFilesResponse] {
+	return decorator.ApplyQueryDecorators[JoinPdfFilesQuery, JoinPdfFilesResponse](
+		joinPdfFilesRepository{s3: s3, logger: log},
 		log)
 }
 
-func (g joinMp3FilesRepository) Handle(ctx context.Context, in JoinMp3FilesQuery) (JoinMp3FilesResponse, error) {
+func (g joinPdfFilesRepository) Handle(ctx context.Context, in JoinPdfFilesQuery) (JoinPdfFilesResponse, error) {
 	filePaths := make([]string, len(in.Files))
 	for idx, file := range in.Files {
 		err := func() error {
-			if err := domain.ValidateAudioFile(file); err != nil {
+			if err := domain.ValidatePdfFile(file); err != nil {
 				return err
 			}
-			outputFile := fmt.Sprintf("%s/%s-%s", constant.AUDIO_FOLDER, uuid.NewString(), file.Filename)
+			outputFile := fmt.Sprintf("%s/%s-%s", constant.PDF_FOLDER, uuid.NewString(), file.Filename)
 
 			src, err := file.Open()
 			if err != nil {
@@ -67,33 +68,22 @@ func (g joinMp3FilesRepository) Handle(ctx context.Context, in JoinMp3FilesQuery
 			return nil
 		}()
 		if err != nil {
-			return JoinMp3FilesResponse{}, err
+			return JoinPdfFilesResponse{}, err
 		}
 	}
-	outputFile := fmt.Sprintf("%s/output-%s.mp3", constant.AUDIO_FOLDER, uuid.NewString())
+	outputFile := fmt.Sprintf("%s/output-%s.pdf", constant.PDF_FOLDER, uuid.NewString())
 
-	// Open the output file
-	out, err := os.Create(outputFile)
+	err := api.MergeCreateFile(filePaths, outputFile, true, nil)
 	if err != nil {
-		g.logger.Hashcode(ctx).Error(fmt.Errorf("error creating file: %w", err))
-		return JoinMp3FilesResponse{}, nil
-	}
-	defer out.Close()
-
-	// Loop through the input files and concatenate their data
-	for _, path := range filePaths {
-		err = domain.AppendFile(out, path)
-		if err != nil {
-			g.logger.Hashcode(ctx).Error(fmt.Errorf("error appending file: %w", err))
-			return JoinMp3FilesResponse{}, nil
-		}
+		g.logger.Hashcode(ctx).Error(fmt.Errorf("error merge file: %w", err))
+		return JoinPdfFilesResponse{}, err
 	}
 
 	// put file to storage
-	err = g.s3.PutObject(ctx, &storage.PutFileRequest{Path: outputFile, ContentType: "audio/mpeg"})
+	err = g.s3.PutObject(ctx, &storage.PutFileRequest{Path: outputFile, ContentType: "application/pdf"})
 	if err != nil {
 		g.logger.Hashcode(ctx).Error(fmt.Errorf("error put file: %w", err))
-		return JoinMp3FilesResponse{}, err
+		return JoinPdfFilesResponse{}, err
 	}
 
 	filePaths = append(filePaths, outputFile)
@@ -104,6 +94,6 @@ func (g joinMp3FilesRepository) Handle(ctx context.Context, in JoinMp3FilesQuery
 		}
 	}
 
-	return JoinMp3FilesResponse{
+	return JoinPdfFilesResponse{
 		Url: fmt.Sprintf("%s://%s/%s/%s", config.Config.Storage.Method, config.Config.Storage.Endpoint, config.Config.Storage.BucketName, outputFile)}, nil
 }

@@ -1,15 +1,10 @@
 .PHONY: openapi
-openapi: openapi_http openapi_js
+openapi: openapi_http
 
 .PHONY: openapi_http
 openapi_http:
 	@./scripts/openapi-http.sh tts pkg/tts/handlers handlers
 	@./scripts/openapi-http.sh support pkg/support/handlers handlers
-
-.PHONY: openapi_js
-openapi_js:
-	@./scripts/openapi-js.sh tts
-	@./scripts/openapi-js.sh support
 
 .PHONY: lint
 lint:

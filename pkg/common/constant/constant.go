@@ -12,4 +12,5 @@ const (
 	METRIC_ID_USER MetricAPI = "id-user"
 
 	AUDIO_FOLDER = "audio"
+	PDF_FOLDER   = "pdf"
 )
