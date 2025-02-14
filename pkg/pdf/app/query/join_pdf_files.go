@@ -13,7 +13,8 @@ import (
 	"tts-poc-service/lib/storage"
 	"tts-poc-service/pkg/common/constant"
 	"tts-poc-service/pkg/common/decorator"
-	"tts-poc-service/pkg/tts/domain"
+	pkgError "tts-poc-service/pkg/common/error"
+	"tts-poc-service/pkg/pdf/domain"
 )
 
 type JoinPdfFilesQuery struct {
@@ -38,6 +39,9 @@ func NewJoinPdfFilesRepository(s3 storage.Storage, log *baselogger.Logger) decor
 }
 
 func (g joinPdfFilesRepository) Handle(ctx context.Context, in JoinPdfFilesQuery) (JoinPdfFilesResponse, error) {
+	if len(in.Files) < 2 {
+		return JoinPdfFilesResponse{}, fmt.Errorf(pkgError.FILE_SHOULD_MORE_THAN_TWO)
+	}
 	filePaths := make([]string, len(in.Files))
 	for idx, file := range in.Files {
 		err := func() error {
@@ -73,7 +77,7 @@ func (g joinPdfFilesRepository) Handle(ctx context.Context, in JoinPdfFilesQuery
 	}
 	outputFile := fmt.Sprintf("%s/output-%s.pdf", constant.PDF_FOLDER, uuid.NewString())
 
-	err := api.MergeCreateFile(filePaths, outputFile, true, nil)
+	err := api.MergeCreateFile(filePaths, outputFile, false, nil)
 	if err != nil {
 		g.logger.Hashcode(ctx).Error(fmt.Errorf("error merge file: %w", err))
 		return JoinPdfFilesResponse{}, err

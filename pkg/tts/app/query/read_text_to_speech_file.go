@@ -11,8 +11,8 @@ import (
 )
 
 type ReadTextToSpeechFileQuery struct {
-	Text string
-	Lang string
+	Text string `json:"text" validate:"required"`
+	Lang string `json:"lang"`
 }
 
 type ReadTextToSpeechFileResponse struct {
@@ -32,6 +32,9 @@ func NewReadTextToSpeechRepository(player htgo.Player, log *baselogger.Logger) d
 }
 
 func (g readTextToSpeechRepository) Handle(ctx context.Context, in ReadTextToSpeechFileQuery) (ReadTextToSpeechFileResponse, error) {
+	if in.Lang == "" {
+		in.Lang = "id"
+	}
 	err := g.player.Play(in.Text, in.Lang)
 	if err != nil {
 		g.logger.Hashcode(ctx).Error(fmt.Errorf("error play text to speech file: %w", err))

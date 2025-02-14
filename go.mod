@@ -18,6 +18,7 @@ require (
 	github.com/volatiletech/strmangle v0.0.8
 	golang.org/x/crypto v0.31.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
+	rsc.io/pdf v0.1.1
 )
 
 require (

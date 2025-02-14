@@ -19,6 +19,8 @@ import (
 	configApp "tts-poc-service/pkg/config/app"
 	configHandler "tts-poc-service/pkg/config/handler"
 	healthHandler "tts-poc-service/pkg/health_check/handler"
+	pdfApp "tts-poc-service/pkg/pdf/app"
+	pdfHandler "tts-poc-service/pkg/pdf/handlers"
 	supportApp "tts-poc-service/pkg/support/app"
 	supportHandler "tts-poc-service/pkg/support/handlers"
 	"tts-poc-service/pkg/tts/app"
@@ -33,6 +35,7 @@ type Handler struct {
 	ConfigServer   configHandler.ConfigServerHandler
 	TtsService     handlers.ServerInterface
 	SupportService supportHandler.ServerInterface
+	PdfService     pdfHandler.ServerInterface
 }
 
 func setHandler(dep Dependency) Handler {
@@ -41,6 +44,7 @@ func setHandler(dep Dependency) Handler {
 		ConfigServer:   configHandler.NewConfigHttpHandler(dep.logger, configApp.NewConfigService(dep.logger)),
 		TtsService:     handlers.NewTtsServer(app.NewTtsService(dep.logger, dep.player, dep.storage)),
 		SupportService: supportHandler.NewSupportServer(supportApp.NewSupportService(dep.logger, dep.db)),
+		PdfService:     pdfHandler.NewPdfServer(pdfApp.NewPdfService(dep.logger, dep.storage, dep.db)),
 	}
 }
 
@@ -114,6 +118,7 @@ func NewServer(ctx context.Context) Server {
 
 	handlers.RegisterHandlers(srvc, hndler.TtsService)
 	supportHandler.RegisterHandlers(srvc, hndler.SupportService)
+	pdfHandler.RegisterHandlers(srvc, hndler.PdfService)
 
 	srvr := &http.Server{
 		Addr:         fmt.Sprintf(":%d", config.Config.Server.Port),

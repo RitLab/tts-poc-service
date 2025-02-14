@@ -9,15 +9,15 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Convert text to speech
-	// (POST /api/tts)
-	TextToSpeech(ctx echo.Context) error
-	// Join mp3 file into one file
-	// (POST /api/tts/join)
-	JoinMP3Files(ctx echo.Context) error
-	// Convert text to speech and response with sound
-	// (POST /api/tts/read)
-	ReadTextToSpeech(ctx echo.Context) error
+	// Join pdf file into one file
+	// (POST /api/tts/join-pdf)
+	JoinPdfFiles(ctx echo.Context) error
+	// Sign pdf file
+	// (POST /api/tts/sign-pdf)
+	SignPdfFile(ctx echo.Context) error
+	// Verify pdf file
+	// (POST /api/tts/verify-pdf)
+	VerifyPdfFile(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -25,30 +25,30 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// TextToSpeech converts echo context to params.
-func (w *ServerInterfaceWrapper) TextToSpeech(ctx echo.Context) error {
+// JoinPdfFiles converts echo context to params.
+func (w *ServerInterfaceWrapper) JoinPdfFiles(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.TextToSpeech(ctx)
+	err = w.Handler.JoinPdfFiles(ctx)
 	return err
 }
 
-// JoinMP3Files converts echo context to params.
-func (w *ServerInterfaceWrapper) JoinMP3Files(ctx echo.Context) error {
+// SignPdfFile converts echo context to params.
+func (w *ServerInterfaceWrapper) SignPdfFile(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.JoinMP3Files(ctx)
+	err = w.Handler.SignPdfFile(ctx)
 	return err
 }
 
-// ReadTextToSpeech converts echo context to params.
-func (w *ServerInterfaceWrapper) ReadTextToSpeech(ctx echo.Context) error {
+// VerifyPdfFile converts echo context to params.
+func (w *ServerInterfaceWrapper) VerifyPdfFile(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ReadTextToSpeech(ctx)
+	err = w.Handler.VerifyPdfFile(ctx)
 	return err
 }
 
@@ -80,8 +80,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.POST(baseURL+"/api/tts", wrapper.TextToSpeech)
-	router.POST(baseURL+"/api/tts/join", wrapper.JoinMP3Files)
-	router.POST(baseURL+"/api/tts/read", wrapper.ReadTextToSpeech)
+	router.POST(baseURL+"/api/tts/join-pdf", wrapper.JoinPdfFiles)
+	router.POST(baseURL+"/api/tts/sign-pdf", wrapper.SignPdfFile)
+	router.POST(baseURL+"/api/tts/verify-pdf", wrapper.VerifyPdfFile)
 
 }

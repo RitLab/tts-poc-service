@@ -29,6 +29,12 @@
         },
         "status": 400
     },
+    "file_should_more_than_two": {
+        "body": {
+            "message": "Minimum file to join is two"
+        },
+        "status": 400
+    },
     "invalid_date_format" :{
         "body": {
             "message": "invalid date format"
@@ -41,9 +47,21 @@
         },
         "status" : 400
     },
-    "invalid_date_to_value" :{
+    "private_key_not_found" :{
         "body": {
-            "message": "date_to must be greater than or equal to date_from"
+            "message": "Key is not found, please input another key"
+        },
+        "status" : 400
+    },
+    "signature_not_found" :{
+        "body": {
+            "message": "PDF file not have any signature. Please input another file!"
+        },
+        "status" : 400
+    },
+    "signature_not_valid" :{
+        "body": {
+            "message": "Signature not valid"
         },
         "status" : 400
     }

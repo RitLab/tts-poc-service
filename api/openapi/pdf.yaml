@@ -2,8 +2,8 @@ openapi: "3.0.3"
 
 info:
   version: 1.0.0
-  title: Text-to-Speech API
-  description: A simple API for converting text to speech.
+  title: PDF API
+  description: A simple API for processing PDF.
   contact:
     name: Ritlabs
     email: ritlabs1404@gmail.com
@@ -15,84 +15,22 @@ servers:
         default: localhost:7075
 
 paths:
-  /api/tts:
+  /api/tts/join-pdf:
     post:
-      summary: Convert text to speech
-      operationId: textToSpeech
+      summary: Join pdf file into one file
+      operationId: joinPdfFiles
       requestBody:
-        description: Text input for conversion
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TtsRequest'
-      responses:
-        '200':
-          description: File path text to speech response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TtsResponse'
-        '400':
-          description: Invalid Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /api/tts/read:
-    post:
-      summary: Convert text to speech and response with sound
-      operationId: readTextToSpeech
-      requestBody:
-        description: Text input for conversion with sound
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TtsRequest'
-      responses:
-        '200':
-          description: File path text to speech response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-        '400':
-          description: Invalid Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /api/tts/join:
-    post:
-      summary: Join mp3 file into one file
-      operationId: joinMP3Files
-      requestBody:
-        description: Join mp3 file multipart
+        description: Join pdf file multipart
         required: true
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/JoinMP3Files'
+              $ref: '#/components/schemas/JoinPdfFiles'
             encoding:
               files:
-                contentType: audio/mpeg
+                contentType: application/pdf
       responses:
-        '201':
+        '200':
           description: Success Message
           content:
             application/json:
@@ -111,22 +49,76 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/tts/sign-pdf:
+    post:
+      summary: Sign pdf file
+      operationId: signPdfFile
+      requestBody:
+        description: Sign pdf file multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SignPdfFile'
+            encoding:
+              files:
+                contentType: application/pdf
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TtsResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tts/verify-pdf:
+    post:
+      summary: Verify pdf file
+      operationId: verifyPdfFile
+      requestBody:
+        description: Verify pdf file multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyPdfFile'
+            encoding:
+              files:
+                contentType: application/pdf
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
-    TtsRequest:
-      type: object
-      required:
-        - text
-      properties:
-        text:
-          type: string
-          example: "Hello World!"
-        lang:
-          type: string
-          example: "id"
-          description: Language code for the speech (e.g., "en" for English, "id" for Indonesian).
-          default: "id"
-
     TtsResponse:
       type: object
       properties:
@@ -137,7 +129,7 @@ components:
               type: string
               example: "https://link.to.sound"
 
-    JoinMP3Files:
+    JoinPdfFiles:
       type: object
       required:
         - files
@@ -147,6 +139,30 @@ components:
           items:
             format: binary
             type: string
+
+    SignPdfFile:
+      type: object
+      required:
+        - file
+        - key
+      properties:
+        file:
+          type: string
+          format: binary
+        key:
+          type: string
+
+    VerifyPdfFile:
+      type: object
+      required:
+        - file
+        - key
+      properties:
+        file:
+          type: string
+          format: binary
+        key:
+          type: string
 
     Success:
       type: object

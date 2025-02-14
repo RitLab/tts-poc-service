@@ -15,8 +15,8 @@ import (
 )
 
 type GetTextToSpeechFileQuery struct {
-	Text string
-	Lang string
+	Text string `json:"text" validate:"required"`
+	Lang string `json:"lang"`
 }
 
 type GetTextToSpeechFileResponse struct {
@@ -38,6 +38,10 @@ func NewGetTextToSpeechRepository(s3 storage.Storage, player htgo.Player, log *b
 }
 
 func (g getTextToSpeechRepository) Handle(ctx context.Context, in GetTextToSpeechFileQuery) (GetTextToSpeechFileResponse, error) {
+	if in.Lang == "" {
+		in.Lang = "id"
+	}
+
 	filePaths, err := g.player.Save(in.Text, in.Lang)
 	if err != nil {
 		g.logger.Hashcode(ctx).Error(fmt.Errorf("error save file: %w", err))

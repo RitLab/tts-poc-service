@@ -12,6 +12,7 @@ import (
 	"tts-poc-service/lib/storage"
 	"tts-poc-service/pkg/common/constant"
 	"tts-poc-service/pkg/common/decorator"
+	pkgError "tts-poc-service/pkg/common/error"
 	"tts-poc-service/pkg/tts/domain"
 )
 
@@ -37,6 +38,9 @@ func NewJoinMp3FilesRepository(s3 storage.Storage, log *baselogger.Logger) decor
 }
 
 func (g joinMp3FilesRepository) Handle(ctx context.Context, in JoinMp3FilesQuery) (JoinMp3FilesResponse, error) {
+	if len(in.Files) < 2 {
+		return JoinMp3FilesResponse{}, fmt.Errorf(pkgError.FILE_SHOULD_MORE_THAN_TWO)
+	}
 	filePaths := make([]string, len(in.Files))
 	for idx, file := range in.Files {
 		err := func() error {
