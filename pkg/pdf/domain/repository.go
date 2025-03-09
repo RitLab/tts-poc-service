@@ -12,3 +12,7 @@ type QueryRepository interface {
 type CommandRepository interface {
 	InsertBlockKey(ctx context.Context, in *models.Block) error
 }
+
+type OpenAIRepository interface {
+	SummarizeText(ctx context.Context, in *OpenAIRequest) (string, error)
+}

@@ -15,6 +15,9 @@ type ServerInterface interface {
 	// Sign pdf file
 	// (POST /api/tts/sign-pdf)
 	SignPdfFile(ctx echo.Context) error
+	// Summarize Pdf Text
+	// (POST /api/tts/summarize-pdf)
+	SummarizePdf(ctx echo.Context) error
 	// Verify pdf file
 	// (POST /api/tts/verify-pdf)
 	VerifyPdfFile(ctx echo.Context) error
@@ -40,6 +43,15 @@ func (w *ServerInterfaceWrapper) SignPdfFile(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.SignPdfFile(ctx)
+	return err
+}
+
+// SummarizePdf converts echo context to params.
+func (w *ServerInterfaceWrapper) SummarizePdf(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.SummarizePdf(ctx)
 	return err
 }
 
@@ -82,6 +94,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.POST(baseURL+"/api/tts/join-pdf", wrapper.JoinPdfFiles)
 	router.POST(baseURL+"/api/tts/sign-pdf", wrapper.SignPdfFile)
+	router.POST(baseURL+"/api/tts/summarize-pdf", wrapper.SummarizePdf)
 	router.POST(baseURL+"/api/tts/verify-pdf", wrapper.VerifyPdfFile)
 
 }

@@ -29,7 +29,9 @@ type Server struct {
 }
 
 type General struct {
-	Env string `json:"env"`
+	OpenAIEndpoint string `json:"openai_endpoint"`
+	OpenAIKey      string `json:"openai_key"`
+	Env            string `json:"env"`
 }
 
 type S3 struct {

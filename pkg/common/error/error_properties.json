@@ -17,6 +17,12 @@
         },
         "status": 400
     },
+    "api_call_error": {
+        "body": {
+            "message": "error to call 3rd party API"
+        },
+        "status": 500
+    },
     "file_extension_not_supported": {
         "body": {
             "message": "file extension is not supported"
@@ -64,6 +70,12 @@
             "message": "Signature not valid"
         },
         "status" : 400
+    },
+    "apikey_not_valid": {
+        "body": {
+            "message": "Open AI API key not found"
+        },
+        "status": 400
     }
 }
 

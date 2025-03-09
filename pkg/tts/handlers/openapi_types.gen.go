@@ -27,7 +27,7 @@ type Success struct {
 type TtsRequest struct {
 	// Lang Language code for the speech (e.g., "en" for English, "id" for Indonesian).
 	Lang *string `json:"lang,omitempty"`
-	Text string  `json:"text"`
+	Text string  `json:"text" validate:"required"`
 }
 
 // TtsResponse defines model for TtsResponse.

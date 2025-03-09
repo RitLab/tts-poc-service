@@ -76,3 +76,22 @@ func (t pdfServer) VerifyPdfFile(c echo.Context) (err error) {
 	}
 	return response.SuccessResponse(c, http.StatusOK, nil)
 }
+
+func (t pdfServer) SummarizePdf(c echo.Context) (err error) {
+	ctx := c.Request().Context()
+	var request query.SummarizePdfQuery
+	if err = pkgUtil.BindRequestAndValidate(c, &request); err != nil {
+		return pkgError.CreateCustomError(c, http.StatusBadRequest, "bad-request", err.Error())
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	request.File = file
+	out, err := t.apps.Queries.SummarizePdfHandler.Handle(ctx, request)
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	return response.SuccessResponse(c, http.StatusOK, out)
+}

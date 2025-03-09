@@ -20,13 +20,25 @@ type JoinPdfFiles struct {
 
 // SignPdfFile defines model for SignPdfFile.
 type SignPdfFile struct {
-	File openapi_types.File `json:"file"`
-	Key  string             `json:"key"`
+	File openapi_types.File `json:"file" validate:"required"`
+	Key  string             `json:"key" validate:"required"`
 }
 
 // Success defines model for Success.
 type Success struct {
 	Message string `json:"message"`
+}
+
+// SummarizePdf defines model for SummarizePdf.
+type SummarizePdf struct {
+	File openapi_types.File `json:"file" validate:"required"`
+}
+
+// SummarizeResponse defines model for SummarizeResponse.
+type SummarizeResponse struct {
+	Data *struct {
+		Output *string `json:"output,omitempty"`
+	} `json:"data,omitempty"`
 }
 
 // TtsResponse defines model for TtsResponse.
@@ -38,8 +50,8 @@ type TtsResponse struct {
 
 // VerifyPdfFile defines model for VerifyPdfFile.
 type VerifyPdfFile struct {
-	File openapi_types.File `json:"file"`
-	Key  string             `json:"key"`
+	File openapi_types.File `json:"file" validate:"required"`
+	Key  string             `json:"key" validate:"required"`
 }
 
 // JoinPdfFilesMultipartRequestBody defines body for JoinPdfFiles for multipart/form-data ContentType.
@@ -47,6 +59,9 @@ type JoinPdfFilesMultipartRequestBody = JoinPdfFiles
 
 // SignPdfFileMultipartRequestBody defines body for SignPdfFile for multipart/form-data ContentType.
 type SignPdfFileMultipartRequestBody = SignPdfFile
+
+// SummarizePdfMultipartRequestBody defines body for SummarizePdf for multipart/form-data ContentType.
+type SummarizePdfMultipartRequestBody = SummarizePdf
 
 // VerifyPdfFileMultipartRequestBody defines body for VerifyPdfFile for multipart/form-data ContentType.
 type VerifyPdfFileMultipartRequestBody = VerifyPdfFile

@@ -11,6 +11,7 @@ import (
 	"time"
 	"tts-poc-service/config"
 	"tts-poc-service/lib/baselogger"
+	"tts-poc-service/lib/connection"
 	"tts-poc-service/lib/database"
 	"tts-poc-service/lib/htgo"
 	"tts-poc-service/lib/storage"
@@ -44,7 +45,7 @@ func setHandler(dep Dependency) Handler {
 		ConfigServer:   configHandler.NewConfigHttpHandler(dep.logger, configApp.NewConfigService(dep.logger)),
 		TtsService:     handlers.NewTtsServer(app.NewTtsService(dep.logger, dep.player, dep.storage)),
 		SupportService: supportHandler.NewSupportServer(supportApp.NewSupportService(dep.logger, dep.db)),
-		PdfService:     pdfHandler.NewPdfServer(pdfApp.NewPdfService(dep.logger, dep.storage, dep.db)),
+		PdfService:     pdfHandler.NewPdfServer(pdfApp.NewPdfService(dep.logger, dep.storage, dep.db, dep.http)),
 	}
 }
 
@@ -53,6 +54,7 @@ type Dependency struct {
 	db      *sql.DB
 	player  htgo.Player
 	storage storage.Storage
+	http    connection.HttpConnectionInterface
 	val     *validator.Validator
 }
 
@@ -68,11 +70,22 @@ func newDependency(ctx context.Context) Dependency {
 	player := htgo.Player{}
 	db := database.NewSqlHandler(logger, config.Config)
 
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = 100
+	t.MaxConnsPerHost = 100
+	t.MaxIdleConnsPerHost = 100
+	httpClient := &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: t,
+	}
+	httpCon := connection.NewHttpConnection(httpClient, logger)
+
 	return Dependency{
 		logger:  logger,
 		db:      db,
 		player:  player,
 		storage: s3,
+		http:    httpCon,
 		val:     val,
 	}
 }

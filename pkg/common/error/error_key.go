@@ -4,6 +4,7 @@ const (
 	BAD_REQUEST                  = "bad_request"
 	GENERAL_ERROR                = "general_error"
 	UNSUPPORTED_PARAMETER        = "unsupported_parameter"
+	API_CALL_ERROR               = "api_call_error"
 	FILE_IS_EMPTY                = "file_is_empty"
 	FILE_EXTENSION_NOT_SUPPORTED = "file_extension_not_supported"
 	FILE_SHOULD_MORE_THAN_TWO    = "file_should_more_than_two"
@@ -13,4 +14,5 @@ const (
 	PRIVATE_KEY_NOT_FOUND        = "private_key_not_found"
 	SIGNATURE_NOT_FOUND          = "signature_not_found"
 	SIGNATURE_NOT_VALID          = "signature_not_valid"
+	APIKEY_NOT_VALID             = "apikey_not_valid"
 )

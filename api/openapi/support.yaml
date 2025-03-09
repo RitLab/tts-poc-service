@@ -58,13 +58,19 @@ components:
         name:
           type: string
           example: "User Name"
+          x-oapi-codegen-extra-tags:
+            validate: required
         email:
           type: string
           example: "example@test.com"
+          x-oapi-codegen-extra-tags:
+            validate: required
         message:
           type: string
           example: "This is message!"
           description: Input message for support support
+          x-oapi-codegen-extra-tags:
+            validate: required
 
     Success:
       type: object

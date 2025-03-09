@@ -92,6 +92,9 @@ type ClientInterface interface {
 	// SignPdfFileWithBody request with any body
 	SignPdfFileWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SummarizePdfWithBody request with any body
+	SummarizePdfWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// VerifyPdfFileWithBody request with any body
 	VerifyPdfFileWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
@@ -110,6 +113,18 @@ func (c *Client) JoinPdfFilesWithBody(ctx context.Context, contentType string, b
 
 func (c *Client) SignPdfFileWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignPdfFileRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SummarizePdfWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSummarizePdfRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -171,6 +186,35 @@ func NewSignPdfFileRequestWithBody(server string, contentType string, body io.Re
 	}
 
 	operationPath := fmt.Sprintf("/api/tts/sign-pdf")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewSummarizePdfRequestWithBody generates requests for SummarizePdf with any type of body
+func NewSummarizePdfRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/tts/summarize-pdf")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -268,6 +312,9 @@ type ClientWithResponsesInterface interface {
 	// SignPdfFileWithBodyWithResponse request with any body
 	SignPdfFileWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignPdfFileResponse, error)
 
+	// SummarizePdfWithBodyWithResponse request with any body
+	SummarizePdfWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SummarizePdfResponse, error)
+
 	// VerifyPdfFileWithBodyWithResponse request with any body
 	VerifyPdfFileWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VerifyPdfFileResponse, error)
 }
@@ -320,6 +367,30 @@ func (r SignPdfFileResponse) StatusCode() int {
 	return 0
 }
 
+type SummarizePdfResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SummarizeResponse
+	JSON400      *Error
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r SummarizePdfResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SummarizePdfResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type VerifyPdfFileResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -360,6 +431,15 @@ func (c *ClientWithResponses) SignPdfFileWithBodyWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseSignPdfFileResponse(rsp)
+}
+
+// SummarizePdfWithBodyWithResponse request with arbitrary body returning *SummarizePdfResponse
+func (c *ClientWithResponses) SummarizePdfWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SummarizePdfResponse, error) {
+	rsp, err := c.SummarizePdfWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSummarizePdfResponse(rsp)
 }
 
 // VerifyPdfFileWithBodyWithResponse request with arbitrary body returning *VerifyPdfFileResponse
@@ -427,6 +507,46 @@ func ParseSignPdfFileResponse(rsp *http.Response) (*SignPdfFileResponse, error) 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest TtsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSummarizePdfResponse parses an HTTP response from a SummarizePdfWithResponse call
+func ParseSummarizePdfResponse(rsp *http.Response) (*SummarizePdfResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SummarizePdfResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SummarizeResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

@@ -102,10 +102,8 @@ services:
 
 networks:
   tts-storage:
-    external: true
     name: tts-storage
   tts-traefik:
-    external: true
     name: tts-traefik
 
 volumes:

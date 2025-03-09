@@ -2,8 +2,8 @@ package command
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
@@ -76,7 +76,7 @@ func (g verifyPdfFileRepository) Handle(ctx context.Context, in VerifyPdfFileQue
 			content = append(content, v.S)
 		}
 	}
-	contentByte, _ := json.Marshal(content)
+	hashContent := sha256.Sum256([]byte(strings.Join(content, "")))
 
 	if signature, found := pdfCtx.RootDict.Find("signature"); !found {
 		return fmt.Errorf(pkgError.SIGNATURE_NOT_FOUND)
@@ -84,7 +84,7 @@ func (g verifyPdfFileRepository) Handle(ctx context.Context, in VerifyPdfFileQue
 		sig := strings.Replace(strings.Replace(signature.String(), "(", "", 1), ")", "", len(signature.String())-1)
 		sigHex, _ := hex.DecodeString(sig)
 
-		if isValid := blockKey.VerifySignature(sigHex, contentByte); !isValid {
+		if isValid := blockKey.VerifySignature(sigHex, hashContent[:]); !isValid {
 			return fmt.Errorf(pkgError.SIGNATURE_NOT_VALID)
 		}
 	}

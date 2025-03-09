@@ -16,11 +16,11 @@ type Success struct {
 
 // SupportRequest defines model for SupportRequest.
 type SupportRequest struct {
-	Email string `json:"email"`
+	Email string `json:"email" validate:"required"`
 
 	// Message Input message for support support
-	Message string `json:"message"`
-	Name    string `json:"name"`
+	Message string `json:"message" validate:"required"`
+	Name    string `json:"name" validate:"required"`
 }
 
 // InsertSupportJSONRequestBody defines body for InsertSupport for application/json ContentType.

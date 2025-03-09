@@ -121,6 +121,8 @@ components:
         text:
           type: string
           example: "Hello World!"
+          x-oapi-codegen-extra-tags:
+            validate: required
         lang:
           type: string
           example: "id"
@@ -147,6 +149,8 @@ components:
           items:
             format: binary
             type: string
+            x-oapi-codegen-extra-tags:
+              validate: required
 
     Success:
       type: object

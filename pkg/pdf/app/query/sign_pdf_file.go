@@ -2,8 +2,8 @@ package query
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"os"
 	"rsc.io/pdf"
+	"strings"
 	"tts-poc-service/config"
 	"tts-poc-service/lib/baselogger"
 	"tts-poc-service/lib/storage"
@@ -103,8 +104,8 @@ func (g signPdfFileRepository) Handle(ctx context.Context, in SignPdfFileQuery) 
 			content = append(content, v.S)
 		}
 	}
-	contentByte, _ := json.Marshal(content)
-	signature := blockKey.SignData(contentByte)
+	hashContent := sha256.Sum256([]byte(strings.Join(content, "")))
+	signature := blockKey.SignData(hashContent[:])
 	sig := hex.EncodeToString(signature)
 	pdfCtx.RootDict.InsertString("signature", sig)
 

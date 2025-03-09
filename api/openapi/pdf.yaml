@@ -117,6 +117,40 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/tts/summarize-pdf:
+    post:
+      summary: Summarize Pdf Text
+      operationId: summarizePdf
+      requestBody:
+        description: Summarize Pdf file using multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SummarizePdf'
+            encoding:
+              files:
+                contentType: application/pdf
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizeResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
     TtsResponse:
@@ -129,6 +163,16 @@ components:
               type: string
               example: "https://link.to.sound"
 
+    SummarizeResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            output:
+              type: string
+              example: "summarize text"
+
     JoinPdfFiles:
       type: object
       required:
@@ -139,6 +183,8 @@ components:
           items:
             format: binary
             type: string
+            x-oapi-codegen-extra-tags:
+              validate: required
 
     SignPdfFile:
       type: object
@@ -149,8 +195,12 @@ components:
         file:
           type: string
           format: binary
+          x-oapi-codegen-extra-tags:
+            validate: required
         key:
           type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
 
     VerifyPdfFile:
       type: object
@@ -161,8 +211,23 @@ components:
         file:
           type: string
           format: binary
+          x-oapi-codegen-extra-tags:
+            validate: required
         key:
           type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    SummarizePdf:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          format: binary
+          x-oapi-codegen-extra-tags:
+            validate: required
 
     Success:
       type: object
