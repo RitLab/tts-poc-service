@@ -35,12 +35,13 @@ type General struct {
 }
 
 type S3 struct {
-	Method          string `json:"method"`
-	Endpoint        string `json:"endpoint"`
-	AccessKey       string `json:"access_key"`
-	SecretAccessKey string `json:"secret_access_key"`
-	BucketName      string `json:"bucket_name"`
-	FileDuration    int    `json:"file_duration"`
+	Method           string `json:"method"`
+	Endpoint         string `json:"endpoint"`
+	ExternalEndpoint string `json:"external_endpoint"`
+	AccessKey        string `json:"access_key"`
+	SecretAccessKey  string `json:"secret_access_key"`
+	BucketName       string `json:"bucket_name"`
+	FileDuration     int    `json:"file_duration"`
 }
 
 type Database struct {
@@ -60,10 +61,15 @@ var files embed.FS
 
 func InitConfig(ctx context.Context, log *baselogger.Logger) {
 	profile := os.Getenv("APP_ENV")
+	configFile := os.Getenv("CONFIG_FILE")
+
+	if configFile == "" {
+		configFile = "config.json"
+	}
 	var data []byte
 
 	log.Info("start init config profile: ", profile)
-	bytes, err := files.ReadFile("config.json")
+	bytes, err := files.ReadFile(configFile)
 	if err != nil {
 		log.Fatal("error when load config: ", err)
 	}

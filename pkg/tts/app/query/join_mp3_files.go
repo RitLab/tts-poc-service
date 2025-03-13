@@ -109,5 +109,5 @@ func (g joinMp3FilesRepository) Handle(ctx context.Context, in JoinMp3FilesQuery
 	}
 
 	return JoinMp3FilesResponse{
-		Url: fmt.Sprintf("%s://%s/%s/%s", config.Config.Storage.Method, config.Config.Storage.Endpoint, config.Config.Storage.BucketName, outputFile)}, nil
+		Url: fmt.Sprintf("%s://%s/%s/%s", config.Config.Storage.Method, config.Config.Storage.ExternalEndpoint, config.Config.Storage.BucketName, outputFile)}, nil
 }

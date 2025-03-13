@@ -21,6 +21,7 @@ fmt:
 build:
 	docker build --no-cache --progress=plain -t ritlab/tts:dev -f docker/app/Dockerfile \
 	--build-arg PROFILE=dev \
+	--build-arg CONFIG=prod-config.json \
 	.
 
 .PHONY: run

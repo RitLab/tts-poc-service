@@ -99,5 +99,5 @@ func (g joinPdfFilesRepository) Handle(ctx context.Context, in JoinPdfFilesQuery
 	}
 
 	return JoinPdfFilesResponse{
-		Url: fmt.Sprintf("%s://%s/%s/%s", config.Config.Storage.Method, config.Config.Storage.Endpoint, config.Config.Storage.BucketName, outputFile)}, nil
+		Url: fmt.Sprintf("%s://%s/%s/%s", config.Config.Storage.Method, config.Config.Storage.ExternalEndpoint, config.Config.Storage.BucketName, outputFile)}, nil
 }

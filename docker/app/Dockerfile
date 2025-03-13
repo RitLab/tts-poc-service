@@ -35,7 +35,9 @@ RUN go build -tags musl -x -v -o tts cmd/main.go
 FROM debian:bullseye-slim
 
 ARG PROFILE
+ARG CONFIG
 ENV APP_ENV=${PROFILE}
+ENV CONFIG_FILE=${CONFIG}
 
 # Install runtime dependencies for ALSA
 RUN apt-get update && apt-get install -y \
@@ -54,6 +56,9 @@ COPY --from=builder /app/audio/ /app/audio
 COPY --from=builder /app/pdf/ /app/pdf
 COPY --from=builder /app/public/ /app/public
 COPY --from=builder /app/api/ /app/api
+
+RUN chmod -R 777 /app/audio
+RUN chmod -R 777 /app/pdf
 
 # Set the entrypoint
 CMD ["./tts"]
