@@ -29,7 +29,7 @@ pipeline {
 
                         // Build image using OpenShift's BuildConfig
                         sh """
-                        oc new-build ${GIT_REPO} --name=${APP_NAME} --branch=${GIT_BRANCH} --strategy=docker --context-dir=docker/app
+                        oc new-build ${GIT_REPO}#${GIT_BRANCH} --name=${APP_NAME} --strategy=docker --context-dir=docker/app
                         oc start-build ${APP_NAME} --from-dir=. --follow
                         """
 
