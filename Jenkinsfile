@@ -49,10 +49,9 @@ pipeline {
                         // Log in to OpenShift
                         sh "oc login --token=$OPENSHIFT_TOKEN --server=${SERVER}"
 
-                        // Delete older image tags (e.g., all but the latest and stable)
+                        // Prune unused images
                         sh """
-                        IMAGES=$(oc get istag -n ${OPENSHIFT_PROJECT} | grep ${APP_NAME} | awk '{print $1}' | head -n -2)
-                        for IMG in $IMAGES; do oc delete istag $IMG; done
+                        oc adm prune images --confirm --keep-tag-revisions=2
                         """
                     }
                 }
