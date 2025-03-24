@@ -22,7 +22,7 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: "openshift-token", variable: 'OPENSHIFT_TOKEN')]) {
                         // Log in to OpenShift
-                        sh "oc login --token=$OPENSHIFT_TOKEN --server=${SERVER}"
+                        sh "oc login --token=$OPENSHIFT_TOKEN --server=${SERVER} --insecure-skip-tls-verify"
 
                         // Switch to the project
                         sh "oc project ${OPENSHIFT_PROJECT}"
@@ -47,7 +47,7 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: "openshift-token", variable: 'OPENSHIFT_TOKEN')]) {
                         // Log in to OpenShift
-                        sh "oc login --token=$OPENSHIFT_TOKEN --server=${SERVER}"
+                        sh "oc login --token=$OPENSHIFT_TOKEN --server=${SERVER} --insecure-skip-tls-verify"
 
                         // Prune unused images
                         sh """
