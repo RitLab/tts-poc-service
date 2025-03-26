@@ -21,12 +21,9 @@ ENV SERVICE_PORT=7075
 # Set the working directory
 WORKDIR /app
 
-# Copy the Go modules and download dependencies
-COPY go.mod go.sum ./
-RUN go mod download
-
 # Copy the application source code
 COPY . .
+RUN go mod download
 
 # Build the Go application
 RUN go build -tags musl -x -v -o tts cmd/main.go
