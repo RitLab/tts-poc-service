@@ -34,7 +34,7 @@ pipeline {
 
                         // Tag and push the image to OpenShift registry
                         sh """
-                        oc tag ${OPENSHIFT_PROJECT}/${APP_NAME}:latest ${OPENSHIFT_PROJECT}/${APP_NAME}:stable
+                        oc tag ${OPENSHIFT_PROJECT}/${APP_NAME}:dev ${OPENSHIFT_PROJECT}/${APP_NAME}:dev
                         """
                     }
                 }
