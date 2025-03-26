@@ -16,8 +16,6 @@ RUN apt-get update && apt-get install -y \
 ENV CGO_ENABLED=1 \
     GO111MODULE=on
 
-ENV SERVICE_PORT=7075
-
 # Set the working directory
 WORKDIR /app
 
@@ -45,7 +43,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-EXPOSE ${SERVICE_PORT}
+EXPOSE 7075
 
 # Set the working directory
 WORKDIR /app

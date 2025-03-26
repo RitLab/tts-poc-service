@@ -29,6 +29,7 @@ pipeline {
 
                         // Build image using OpenShift's BuildConfig
                         sh """
+                        set -e
                         oc start-build ${APP_NAME} --from-dir=. --follow
                         """
 
