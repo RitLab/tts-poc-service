@@ -32,7 +32,8 @@ type PutObjectRequest struct {
 }
 
 type PutFileRequest struct {
-	Path string
+	Path        string
+	ContentType string
 }
 
 type GetObjectRequest struct {
@@ -50,7 +51,7 @@ type MinioHandler struct {
 func NewMinioHandler(log *baselogger.Logger) (mapStorages Storage) {
 	minioClient, err := minio.New(config.Config.Storage.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.Config.Storage.AccessKey, config.Config.Storage.SecretAccessKey, ""),
-		Secure: true,
+		Secure: false,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -104,7 +105,7 @@ func (m *MinioHandler) PutObject(ctx context.Context, input *PutFileRequest) err
 	//
 	//contentType := http.DetectContentType(buffer)
 
-	info, err := m.minio.PutObject(ctx, m.bucketName, input.Path, file, fileSize, minio.PutObjectOptions{ContentType: "audio/mpeg"})
+	info, err := m.minio.PutObject(ctx, m.bucketName, input.Path, file, fileSize, minio.PutObjectOptions{ContentType: input.ContentType})
 	if err != nil {
 		m.log.Error(err)
 		return err

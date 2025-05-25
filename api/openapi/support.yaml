@@ -1,0 +1,95 @@
+openapi: "3.0.3"
+
+info:
+  version: 1.0.0
+  title: Support API
+  description: A simple API for insert support contact.
+  contact:
+    name: Ritlabs
+    email: ritlabs1404@gmail.com
+
+servers:
+  - url: https://{hostname}/api
+    variables:
+      hostname:
+        default: localhost:7075
+
+paths:
+  /api/tts/support:
+    post:
+      summary: Insert support support API
+      operationId: insertSupport
+      requestBody:
+        description: Insert support support API
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportRequest'
+      responses:
+        '201':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    SupportRequest:
+      type: object
+      required:
+        - name
+        - email
+        - message
+      properties:
+        name:
+          type: string
+          example: "User Name"
+          x-oapi-codegen-extra-tags:
+            validate: required
+        email:
+          type: string
+          example: "example@test.com"
+          x-oapi-codegen-extra-tags:
+            validate: required
+        message:
+          type: string
+          example: "This is message!"
+          description: Input message for support support
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    Success:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "success!"
+
+    Error:
+      type: object
+      required:
+        - slug
+        - message
+      properties:
+        slug:
+          type: string
+          example: "bad-request"
+        message:
+          type: string
+          example: "unexpected error"

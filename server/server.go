@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,6 +11,9 @@ import (
 	"time"
 	"tts-poc-service/config"
 	"tts-poc-service/lib/baselogger"
+	"tts-poc-service/lib/connection"
+	"tts-poc-service/lib/database"
+	"tts-poc-service/lib/gemini_ai"
 	"tts-poc-service/lib/htgo"
 	"tts-poc-service/lib/storage"
 	"tts-poc-service/lib/validator"
@@ -17,6 +21,10 @@ import (
 	configApp "tts-poc-service/pkg/config/app"
 	configHandler "tts-poc-service/pkg/config/handler"
 	healthHandler "tts-poc-service/pkg/health_check/handler"
+	pdfApp "tts-poc-service/pkg/pdf/app"
+	pdfHandler "tts-poc-service/pkg/pdf/handlers"
+	supportApp "tts-poc-service/pkg/support/app"
+	supportHandler "tts-poc-service/pkg/support/handlers"
 	"tts-poc-service/pkg/tts/app"
 	"tts-poc-service/pkg/tts/handlers"
 
@@ -24,29 +32,33 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-const (
-	DBInitFile = "./migration/init.sql"
-)
-
 type Handler struct {
-	HealthCheck  healthHandler.HealthCheckHandler
-	ConfigServer configHandler.ConfigServerHandler
-	TtsService   handlers.ServerInterface
+	HealthCheck    healthHandler.HealthCheckHandler
+	ConfigServer   configHandler.ConfigServerHandler
+	TtsService     handlers.ServerInterface
+	SupportService supportHandler.ServerInterface
+	PdfService     pdfHandler.ServerInterface
 }
 
 func setHandler(dep Dependency) Handler {
 	return Handler{
-		HealthCheck:  healthHandler.NewHealthCheckHandler(time.Now()),
-		ConfigServer: configHandler.NewConfigHttpHandler(dep.logger, configApp.NewConfigService(dep.logger)),
-		TtsService:   handlers.NewTtsServer(app.NewTtsService(dep.logger, dep.player, dep.storage)),
+		HealthCheck:    healthHandler.NewHealthCheckHandler(time.Now()),
+		ConfigServer:   configHandler.NewConfigHttpHandler(dep.logger, configApp.NewConfigService(dep.logger)),
+		TtsService:     handlers.NewTtsServer(app.NewTtsService(dep.logger, dep.player, dep.storage, dep.ai)),
+		SupportService: supportHandler.NewSupportServer(supportApp.NewSupportService(dep.logger, dep.db)),
+		PdfService:     pdfHandler.NewPdfServer(pdfApp.NewPdfService(dep.logger, dep.storage, dep.db, dep.ai, dep.dbVector)),
 	}
 }
 
 type Dependency struct {
-	logger  *baselogger.Logger
-	player  htgo.Player
-	storage storage.Storage
-	val     *validator.Validator
+	logger   *baselogger.Logger
+	db       *sql.DB
+	player   htgo.Player
+	storage  storage.Storage
+	http     connection.HttpConnectionInterface
+	ai       gemini_ai.GenAIMethod
+	dbVector database.VectorDatabase
+	val      *validator.Validator
 }
 
 func newDependency(ctx context.Context) Dependency {
@@ -59,12 +71,32 @@ func newDependency(ctx context.Context) Dependency {
 
 	s3 := storage.NewMinioHandler(logger)
 	player := htgo.Player{}
+	db := database.NewSqlHandler(logger, config.Config)
+
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = 100
+	t.MaxConnsPerHost = 100
+	t.MaxIdleConnsPerHost = 100
+	httpClient := &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: t,
+	}
+	httpCon := connection.NewHttpConnection(httpClient, logger)
+
+	iaMethod := gemini_ai.NewGenAI(ctx)
+
+	dbVector := database.NewMilvusClient(ctx, logger)
+	dbVector.CreateEmbeddedCollection(ctx, config.Config.General.MilvusCollectionName)
 
 	return Dependency{
-		logger:  logger,
-		player:  player,
-		storage: s3,
-		val:     val,
+		logger:   logger,
+		db:       db,
+		player:   player,
+		storage:  s3,
+		http:     httpCon,
+		ai:       iaMethod,
+		dbVector: dbVector,
+		val:      val,
 	}
 }
 
@@ -86,30 +118,30 @@ func NewServer(ctx context.Context) Server {
 	mid := New(dep.logger)
 	setMiddleware(srvc, dep, mid)
 
+	root := srvc.Group("/api/tts")
+
 	// Serve OpenAPI Specification
-	srvc.GET("/openapi.yaml", func(c echo.Context) error {
+	root.GET("/openapi.yaml", func(c echo.Context) error {
 		return c.File("api/openapi/tts.yaml")
 	})
 
 	// Serve Swagger UI Static Files
-	srvc.Static("/swagger-ui", "public/swagger-ui")
+	root.Static("/swagger-ui", "public/swagger-ui")
 
 	// Redirect to Swagger UI with OpenAPI Specification URL
-	srvc.GET("/docs", func(c echo.Context) error {
-		redirectURL := "/swagger-ui/index.html?url=/openapi.yaml"
+	root.GET("/docs", func(c echo.Context) error {
+		redirectURL := "/api/tts/swagger-ui/index.html?url=/api/tts/openapi.yaml"
 		return c.Redirect(http.StatusMovedPermanently, redirectURL)
 	})
-
-	root := srvc.Group("/api/tts")
 
 	// general api
 	root.GET("/health-check", hndler.HealthCheck.HealthCheck)
 	root.POST("/config/reload", hndler.ConfigServer.ReloadConfig)
 	root.GET("/config", hndler.ConfigServer.GetConfig)
 
-	// tts
-	root.POST("", hndler.TtsService.TextToSpeech)
-	root.POST("/read", hndler.TtsService.ReadTextToSpeech)
+	handlers.RegisterHandlers(srvc, hndler.TtsService)
+	supportHandler.RegisterHandlers(srvc, hndler.SupportService)
+	pdfHandler.RegisterHandlers(srvc, hndler.PdfService)
 
 	srvr := &http.Server{
 		Addr:         fmt.Sprintf(":%d", config.Config.Server.Port),
@@ -137,6 +169,12 @@ func (s *server) HandleShutdown(ctx context.Context) context.Context {
 		<-quit
 		signal.Stop(quit)
 		close(quit)
+
+		if err := s.db.Close(); err != nil {
+			s.logger.Errorf("could not gracefully shutdown database: %v", err)
+		} else {
+			s.logger.Info("database connection is shutting down")
+		}
 
 		if err := s.Shutdown(ctx); err != nil {
 			s.logger.Errorf("could not gracefully shutdown the api server")

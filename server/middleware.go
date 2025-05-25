@@ -79,19 +79,17 @@ func (h _http) MiddlewareWithLogger() middleware.RequestLoggerConfig {
 				return nil
 			}
 			if v.Error == nil {
-				h.Logger.WithContext(ctx).WithFields(logrus.Fields{
-					"hashcode": ctx.Value(__header_hashcode),
-					"uri":      v.URI,
-					"status":   v.Status,
-					"latency":  v.Latency,
+				h.Hashcode(ctx).Logger.WithContext(ctx).WithFields(logrus.Fields{
+					"uri":     v.URI,
+					"status":  v.Status,
+					"latency": v.Latency,
 				}).Info("request")
 			} else {
-				h.Logger.WithContext(ctx).WithFields(logrus.Fields{
-					"hashcode": ctx.Value(__header_hashcode),
-					"uri":      v.URI,
-					"status":   v.Status,
-					"latency":  v.Latency,
-					"error":    v.Error,
+				h.Hashcode(ctx).Logger.WithContext(ctx).WithFields(logrus.Fields{
+					"uri":     v.URI,
+					"status":  v.Status,
+					"latency": v.Latency,
+					"error":   v.Error,
 				}).Error("request error")
 			}
 			pkgMetric.SendMetric(map[string]any{

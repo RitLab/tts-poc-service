@@ -15,12 +15,12 @@ import (
 )
 
 type GetTextToSpeechFileQuery struct {
-	Text string
-	Lang string
+	Text string `json:"text" validate:"required"`
+	Lang string `json:"lang"`
 }
 
 type GetTextToSpeechFileResponse struct {
-	Url string
+	Url string `json:"url"`
 }
 
 type GetTextToSpeechHandler decorator.QueryHandler[GetTextToSpeechFileQuery, GetTextToSpeechFileResponse]
@@ -38,6 +38,10 @@ func NewGetTextToSpeechRepository(s3 storage.Storage, player htgo.Player, log *b
 }
 
 func (g getTextToSpeechRepository) Handle(ctx context.Context, in GetTextToSpeechFileQuery) (GetTextToSpeechFileResponse, error) {
+	if in.Lang == "" {
+		in.Lang = "id"
+	}
+
 	filePaths, err := g.player.Save(in.Text, in.Lang)
 	if err != nil {
 		g.logger.Hashcode(ctx).Error(fmt.Errorf("error save file: %w", err))
@@ -63,7 +67,7 @@ func (g getTextToSpeechRepository) Handle(ctx context.Context, in GetTextToSpeec
 		}
 	}
 
-	err = g.s3.PutObject(ctx, &storage.PutFileRequest{Path: outputFile})
+	err = g.s3.PutObject(ctx, &storage.PutFileRequest{Path: outputFile, ContentType: "audio/mpeg"})
 	if err != nil {
 		g.logger.Hashcode(ctx).Error(fmt.Errorf("error put file: %w", err))
 		return GetTextToSpeechFileResponse{}, err
@@ -78,5 +82,5 @@ func (g getTextToSpeechRepository) Handle(ctx context.Context, in GetTextToSpeec
 	}
 
 	return GetTextToSpeechFileResponse{
-		Url: fmt.Sprintf("%s://%s/%s/%s", config.Config.Storage.Method, config.Config.Storage.Endpoint, config.Config.Storage.BucketName, outputFile)}, nil
+		Url: fmt.Sprintf("%s://%s/%s/%s", config.Config.Storage.Method, config.Config.Storage.ExternalEndpoint, config.Config.Storage.BucketName, outputFile)}, nil
 }

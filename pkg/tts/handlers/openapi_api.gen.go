@@ -10,10 +10,19 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Convert text to speech
-	// (POST /tts)
+	// (POST /api/tts)
 	TextToSpeech(ctx echo.Context) error
+	// Create summarize based on audio file
+	// (POST /api/tts/audio-summarize)
+	AudioSummarize(ctx echo.Context) error
+	// Create transcript based on audio file
+	// (POST /api/tts/audio-transcript)
+	AudioTranscript(ctx echo.Context) error
+	// Join mp3 file into one file
+	// (POST /api/tts/join)
+	JoinMP3Files(ctx echo.Context) error
 	// Convert text to speech and response with sound
-	// (POST /tts/read)
+	// (POST /api/tts/read)
 	ReadTextToSpeech(ctx echo.Context) error
 }
 
@@ -28,6 +37,33 @@ func (w *ServerInterfaceWrapper) TextToSpeech(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.TextToSpeech(ctx)
+	return err
+}
+
+// AudioSummarize converts echo context to params.
+func (w *ServerInterfaceWrapper) AudioSummarize(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.AudioSummarize(ctx)
+	return err
+}
+
+// AudioTranscript converts echo context to params.
+func (w *ServerInterfaceWrapper) AudioTranscript(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.AudioTranscript(ctx)
+	return err
+}
+
+// JoinMP3Files converts echo context to params.
+func (w *ServerInterfaceWrapper) JoinMP3Files(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.JoinMP3Files(ctx)
 	return err
 }
 
@@ -68,7 +104,10 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.POST(baseURL+"/tts", wrapper.TextToSpeech)
-	router.POST(baseURL+"/tts/read", wrapper.ReadTextToSpeech)
+	router.POST(baseURL+"/api/tts", wrapper.TextToSpeech)
+	router.POST(baseURL+"/api/tts/audio-summarize", wrapper.AudioSummarize)
+	router.POST(baseURL+"/api/tts/audio-transcript", wrapper.AudioTranscript)
+	router.POST(baseURL+"/api/tts/join", wrapper.JoinMP3Files)
+	router.POST(baseURL+"/api/tts/read", wrapper.ReadTextToSpeech)
 
 }

@@ -6,16 +6,16 @@ info:
   description: A simple API for converting text to speech.
   contact:
     name: Ritlabs
-    url: ritlabs1404@gmail.com
+    email: ritlabs1404@gmail.com
 
 servers:
-  - url: http://{hostname}/api
+  - url: https://{hostname}
     variables:
       hostname:
         default: localhost:7075
 
 paths:
-  /tts:
+  /api/tts:
     post:
       summary: Convert text to speech
       operationId: textToSpeech
@@ -46,7 +46,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /tts/read:
+  /api/tts/read:
     post:
       summary: Convert text to speech and response with sound
       operationId: readTextToSpeech
@@ -63,7 +63,109 @@ paths:
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/Success'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tts/join:
+    post:
+      summary: Join mp3 file into one file
+      operationId: joinMP3Files
+      requestBody:
+        description: Join mp3 file multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JoinMP3Files'
+            encoding:
+              files:
+                contentType: audio/mpeg
+      responses:
+        '201':
+          description: Success Message
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/TtsResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tts/audio-transcript:
+    post:
+      summary: Create transcript based on audio file
+      operationId: audioTranscript
+      requestBody:
+        description: Create transcript from audio file multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AudioTranscriptRequest'
+            encoding:
+              files:
+                contentType: audio/mpeg
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudioTranscriptResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tts/audio-summarize:
+    post:
+      summary: Create summarize based on audio file
+      operationId: audioSummarize
+      requestBody:
+        description: Create summarize from audio file multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AudioSummarizeRequest'
+            encoding:
+              files:
+                contentType: audio/mpeg
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudioSummarizeResponse'
         '400':
           description: Invalid Request
           content:
@@ -87,6 +189,8 @@ components:
         text:
           type: string
           example: "Hello World!"
+          x-oapi-codegen-extra-tags:
+            validate: required
         lang:
           type: string
           example: "id"
@@ -95,12 +199,77 @@ components:
 
     TtsResponse:
       type: object
-      required:
-        - url
       properties:
-        url:
+        data:
+          type: object
+          properties:
+            url:
+              type: string
+              example: "https://link.to.sound"
+
+    JoinMP3Files:
+      type: object
+      required:
+        - files
+      properties:
+        files:
+          type: array
+          items:
+            format: binary
+            type: string
+            x-oapi-codegen-extra-tags:
+              validate: required
+
+    AudioTranscriptRequest:
+      type: object
+      required:
+        - file
+      properties:
+        file:
           type: string
-          example: "https://link.to.sound"
+          format: binary
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    AudioTranscriptResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            output:
+              type: string
+              example: "transcript"
+
+    AudioSummarizeRequest:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          format: binary
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    AudioSummarizeResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            output:
+              type: string
+              example: "summarize"
+
+    Success:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "success!"
 
     Error:
       type: object

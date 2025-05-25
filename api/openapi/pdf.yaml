@@ -1,0 +1,348 @@
+openapi: "3.0.3"
+
+info:
+  version: 1.0.0
+  title: PDF API
+  description: A simple API for processing PDF.
+  contact:
+    name: Ritlabs
+    email: ritlabs1404@gmail.com
+
+servers:
+  - url: https://{hostname}
+    variables:
+      hostname:
+        default: localhost:7075
+
+paths:
+  /api/tts/join-pdf:
+    post:
+      summary: Join pdf file into one file
+      operationId: joinPdfFiles
+      requestBody:
+        description: Join pdf file multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JoinPdfFiles'
+            encoding:
+              files:
+                contentType: application/pdf
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TtsResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tts/sign-pdf:
+    post:
+      summary: Sign pdf file
+      operationId: signPdfFile
+      requestBody:
+        description: Sign pdf file multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SignPdfFile'
+            encoding:
+              files:
+                contentType: application/pdf
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TtsResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tts/verify-pdf:
+    post:
+      summary: Verify pdf file
+      operationId: verifyPdfFile
+      requestBody:
+        description: Verify pdf file multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyPdfFile'
+            encoding:
+              files:
+                contentType: application/pdf
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tts/summarize-pdf:
+    post:
+      summary: Summarize Pdf Text
+      operationId: summarizePdf
+      requestBody:
+        description: Summarize Pdf file using multipart
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SummarizePdf'
+            encoding:
+              files:
+                contentType: application/pdf
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizeResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tts/upload-context-pdf:
+    post:
+      summary: Upload Pdf Context
+      operationId: uploadContextPdf
+      requestBody:
+        description: Upload Pdf for context to AI
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ContextPdf'
+            encoding:
+              files:
+                contentType: application/pdf
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tts/chat-context:
+    post:
+      summary: Chat Context
+      operationId: chatContext
+      requestBody:
+        description: Chat with AI based on uploaded Pdf
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatContextRequest'
+            encoding:
+              files:
+                contentType: application/pdf
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatContextResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    TtsResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            url:
+              type: string
+              example: "https://link.to.sound"
+
+    SummarizeResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            output:
+              type: string
+              example: "summarize text"
+
+    JoinPdfFiles:
+      type: object
+      required:
+        - files
+      properties:
+        files:
+          type: array
+          items:
+            format: binary
+            type: string
+            x-oapi-codegen-extra-tags:
+              validate: required
+
+    SignPdfFile:
+      type: object
+      required:
+        - file
+        - key
+      properties:
+        file:
+          type: string
+          format: binary
+          x-oapi-codegen-extra-tags:
+            validate: required
+        key:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    VerifyPdfFile:
+      type: object
+      required:
+        - file
+        - key
+      properties:
+        file:
+          type: string
+          format: binary
+          x-oapi-codegen-extra-tags:
+            validate: required
+        key:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    SummarizePdf:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          format: binary
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    ContextPdf:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          format: binary
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    ChatContextRequest:
+      type: object
+      properties:
+        question:
+          type: string
+          example: "Hello world"
+
+    ChatContextResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            output:
+              type: string
+              example: "chat text"
+
+    Success:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "success!"
+
+    Error:
+      type: object
+      required:
+        - slug
+        - message
+      properties:
+        slug:
+          type: string
+          example: "bad-request"
+        message:
+          type: string
+          example: "unexpected error"
