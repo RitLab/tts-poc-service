@@ -86,6 +86,9 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// ChatContextWithBody request with any body
+	ChatContextWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// JoinPdfFilesWithBody request with any body
 	JoinPdfFilesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -95,8 +98,23 @@ type ClientInterface interface {
 	// SummarizePdfWithBody request with any body
 	SummarizePdfWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UploadContextPdfWithBody request with any body
+	UploadContextPdfWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// VerifyPdfFileWithBody request with any body
 	VerifyPdfFileWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) ChatContextWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChatContextRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) JoinPdfFilesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -135,6 +153,18 @@ func (c *Client) SummarizePdfWithBody(ctx context.Context, contentType string, b
 	return c.Client.Do(req)
 }
 
+func (c *Client) UploadContextPdfWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUploadContextPdfRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) VerifyPdfFileWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewVerifyPdfFileRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -145,6 +175,35 @@ func (c *Client) VerifyPdfFileWithBody(ctx context.Context, contentType string, 
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewChatContextRequestWithBody generates requests for ChatContext with any type of body
+func NewChatContextRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/tts/chat-context")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 // NewJoinPdfFilesRequestWithBody generates requests for JoinPdfFiles with any type of body
@@ -215,6 +274,35 @@ func NewSummarizePdfRequestWithBody(server string, contentType string, body io.R
 	}
 
 	operationPath := fmt.Sprintf("/api/tts/summarize-pdf")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUploadContextPdfRequestWithBody generates requests for UploadContextPdf with any type of body
+func NewUploadContextPdfRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/tts/upload-context-pdf")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -306,6 +394,9 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// ChatContextWithBodyWithResponse request with any body
+	ChatContextWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatContextResponse, error)
+
 	// JoinPdfFilesWithBodyWithResponse request with any body
 	JoinPdfFilesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*JoinPdfFilesResponse, error)
 
@@ -315,8 +406,35 @@ type ClientWithResponsesInterface interface {
 	// SummarizePdfWithBodyWithResponse request with any body
 	SummarizePdfWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SummarizePdfResponse, error)
 
+	// UploadContextPdfWithBodyWithResponse request with any body
+	UploadContextPdfWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadContextPdfResponse, error)
+
 	// VerifyPdfFileWithBodyWithResponse request with any body
 	VerifyPdfFileWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VerifyPdfFileResponse, error)
+}
+
+type ChatContextResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ChatContextResponse
+	JSON400      *Error
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r ChatContextResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ChatContextResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type JoinPdfFilesResponse struct {
@@ -391,6 +509,30 @@ func (r SummarizePdfResponse) StatusCode() int {
 	return 0
 }
 
+type UploadContextPdfResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Success
+	JSON400      *Error
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r UploadContextPdfResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UploadContextPdfResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type VerifyPdfFileResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -413,6 +555,15 @@ func (r VerifyPdfFileResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ChatContextWithBodyWithResponse request with arbitrary body returning *ChatContextResponse
+func (c *ClientWithResponses) ChatContextWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatContextResponse, error) {
+	rsp, err := c.ChatContextWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChatContextResponse(rsp)
 }
 
 // JoinPdfFilesWithBodyWithResponse request with arbitrary body returning *JoinPdfFilesResponse
@@ -442,6 +593,15 @@ func (c *ClientWithResponses) SummarizePdfWithBodyWithResponse(ctx context.Conte
 	return ParseSummarizePdfResponse(rsp)
 }
 
+// UploadContextPdfWithBodyWithResponse request with arbitrary body returning *UploadContextPdfResponse
+func (c *ClientWithResponses) UploadContextPdfWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadContextPdfResponse, error) {
+	rsp, err := c.UploadContextPdfWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUploadContextPdfResponse(rsp)
+}
+
 // VerifyPdfFileWithBodyWithResponse request with arbitrary body returning *VerifyPdfFileResponse
 func (c *ClientWithResponses) VerifyPdfFileWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VerifyPdfFileResponse, error) {
 	rsp, err := c.VerifyPdfFileWithBody(ctx, contentType, body, reqEditors...)
@@ -449,6 +609,46 @@ func (c *ClientWithResponses) VerifyPdfFileWithBodyWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseVerifyPdfFileResponse(rsp)
+}
+
+// ParseChatContextResponse parses an HTTP response from a ChatContextWithResponse call
+func ParseChatContextResponse(rsp *http.Response) (*ChatContextResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ChatContextResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ChatContextResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseJoinPdfFilesResponse parses an HTTP response from a JoinPdfFilesWithResponse call
@@ -547,6 +747,46 @@ func ParseSummarizePdfResponse(rsp *http.Response) (*SummarizePdfResponse, error
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest SummarizeResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUploadContextPdfResponse parses an HTTP response from a UploadContextPdfWithResponse call
+func ParseUploadContextPdfResponse(rsp *http.Response) (*UploadContextPdfResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UploadContextPdfResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Success
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

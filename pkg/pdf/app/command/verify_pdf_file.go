@@ -8,7 +8,6 @@ import (
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 	"mime/multipart"
-	"rsc.io/pdf"
 	"strings"
 	"tts-poc-service/lib/baselogger"
 	"tts-poc-service/pkg/common/decorator"
@@ -54,9 +53,14 @@ func (g verifyPdfFileRepository) Handle(ctx context.Context, in VerifyPdfFileQue
 	}
 	defer src.Close()
 
-	doc, err := pdf.NewReader(src, in.File.Size)
+	pdfReader, err := domain.NewPdfReader(src)
 	if err != nil {
-		g.logger.Hashcode(ctx).Error(fmt.Errorf("error open file: %w", err))
+		g.logger.Hashcode(ctx).Error(fmt.Errorf("error read file: %w", err))
+		return err
+	}
+	cleanedText, err := pdfReader.CleanText()
+	if err != nil {
+		g.logger.Hashcode(ctx).Error(fmt.Errorf("error clean text: %w", err))
 		return err
 	}
 
@@ -65,18 +69,7 @@ func (g verifyPdfFileRepository) Handle(ctx context.Context, in VerifyPdfFileQue
 		g.logger.Hashcode(ctx).Error(fmt.Errorf("error read context: %w", err))
 		return err
 	}
-	content := make([]string, 0)
-	numPages := doc.NumPage()
-	for i := 1; i <= numPages; i++ {
-		page := doc.Page(i)
-		if page.V.IsNull() {
-			continue
-		}
-		for _, v := range page.Content().Text {
-			content = append(content, v.S)
-		}
-	}
-	hashContent := sha256.Sum256([]byte(strings.Join(content, "")))
+	hashContent := sha256.Sum256([]byte(cleanedText))
 
 	if signature, found := pdfCtx.RootDict.Find("signature"); !found {
 		return fmt.Errorf(pkgError.SIGNATURE_NOT_FOUND)

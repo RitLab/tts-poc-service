@@ -9,6 +9,9 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Chat Context
+	// (POST /api/tts/chat-context)
+	ChatContext(ctx echo.Context) error
 	// Join pdf file into one file
 	// (POST /api/tts/join-pdf)
 	JoinPdfFiles(ctx echo.Context) error
@@ -18,6 +21,9 @@ type ServerInterface interface {
 	// Summarize Pdf Text
 	// (POST /api/tts/summarize-pdf)
 	SummarizePdf(ctx echo.Context) error
+	// Upload Pdf Context
+	// (POST /api/tts/upload-context-pdf)
+	UploadContextPdf(ctx echo.Context) error
 	// Verify pdf file
 	// (POST /api/tts/verify-pdf)
 	VerifyPdfFile(ctx echo.Context) error
@@ -26,6 +32,15 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// ChatContext converts echo context to params.
+func (w *ServerInterfaceWrapper) ChatContext(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ChatContext(ctx)
+	return err
 }
 
 // JoinPdfFiles converts echo context to params.
@@ -52,6 +67,15 @@ func (w *ServerInterfaceWrapper) SummarizePdf(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.SummarizePdf(ctx)
+	return err
+}
+
+// UploadContextPdf converts echo context to params.
+func (w *ServerInterfaceWrapper) UploadContextPdf(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UploadContextPdf(ctx)
 	return err
 }
 
@@ -92,9 +116,11 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.POST(baseURL+"/api/tts/chat-context", wrapper.ChatContext)
 	router.POST(baseURL+"/api/tts/join-pdf", wrapper.JoinPdfFiles)
 	router.POST(baseURL+"/api/tts/sign-pdf", wrapper.SignPdfFile)
 	router.POST(baseURL+"/api/tts/summarize-pdf", wrapper.SummarizePdf)
+	router.POST(baseURL+"/api/tts/upload-context-pdf", wrapper.UploadContextPdf)
 	router.POST(baseURL+"/api/tts/verify-pdf", wrapper.VerifyPdfFile)
 
 }

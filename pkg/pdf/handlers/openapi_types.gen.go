@@ -7,6 +7,23 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// ChatContextRequest defines model for ChatContextRequest.
+type ChatContextRequest struct {
+	Question *string `json:"question,omitempty"`
+}
+
+// ChatContextResponse defines model for ChatContextResponse.
+type ChatContextResponse struct {
+	Data *struct {
+		Output *string `json:"output,omitempty"`
+	} `json:"data,omitempty"`
+}
+
+// ContextPdf defines model for ContextPdf.
+type ContextPdf struct {
+	File openapi_types.File `json:"file" validate:"required"`
+}
+
 // Error defines model for Error.
 type Error struct {
 	Message string `json:"message"`
@@ -54,6 +71,9 @@ type VerifyPdfFile struct {
 	Key  string             `json:"key" validate:"required"`
 }
 
+// ChatContextMultipartRequestBody defines body for ChatContext for multipart/form-data ContentType.
+type ChatContextMultipartRequestBody = ChatContextRequest
+
 // JoinPdfFilesMultipartRequestBody defines body for JoinPdfFiles for multipart/form-data ContentType.
 type JoinPdfFilesMultipartRequestBody = JoinPdfFiles
 
@@ -62,6 +82,9 @@ type SignPdfFileMultipartRequestBody = SignPdfFile
 
 // SummarizePdfMultipartRequestBody defines body for SummarizePdf for multipart/form-data ContentType.
 type SummarizePdfMultipartRequestBody = SummarizePdf
+
+// UploadContextPdfMultipartRequestBody defines body for UploadContextPdf for multipart/form-data ContentType.
+type UploadContextPdfMultipartRequestBody = ContextPdf
 
 // VerifyPdfFileMultipartRequestBody defines body for VerifyPdfFile for multipart/form-data ContentType.
 type VerifyPdfFileMultipartRequestBody = VerifyPdfFile

@@ -10,8 +10,6 @@ import (
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 	"mime/multipart"
 	"os"
-	"rsc.io/pdf"
-	"strings"
 	"tts-poc-service/config"
 	"tts-poc-service/lib/baselogger"
 	"tts-poc-service/lib/storage"
@@ -81,9 +79,14 @@ func (g signPdfFileRepository) Handle(ctx context.Context, in SignPdfFileQuery) 
 	}
 	defer src.Close()
 
-	doc, err := pdf.NewReader(src, in.File.Size)
+	pdfReader, err := domain.NewPdfReader(src)
 	if err != nil {
-		g.logger.Hashcode(ctx).Error(fmt.Errorf("error open file: %w", err))
+		g.logger.Hashcode(ctx).Error(fmt.Errorf("error read file: %w", err))
+		return SignPdfFileResponse{}, err
+	}
+	cleanedText, err := pdfReader.CleanText()
+	if err != nil {
+		g.logger.Hashcode(ctx).Error(fmt.Errorf("error clean text: %w", err))
 		return SignPdfFileResponse{}, err
 	}
 
@@ -93,18 +96,7 @@ func (g signPdfFileRepository) Handle(ctx context.Context, in SignPdfFileQuery) 
 		return SignPdfFileResponse{}, err
 	}
 
-	content := make([]string, 0)
-	numPages := doc.NumPage()
-	for i := 1; i <= numPages; i++ {
-		page := doc.Page(i)
-		if page.V.IsNull() {
-			continue
-		}
-		for _, v := range page.Content().Text {
-			content = append(content, v.S)
-		}
-	}
-	hashContent := sha256.Sum256([]byte(strings.Join(content, "")))
+	hashContent := sha256.Sum256([]byte(cleanedText))
 	signature := blockKey.SignData(hashContent[:])
 	sig := hex.EncodeToString(signature)
 	pdfCtx.RootDict.InsertString("signature", sig)

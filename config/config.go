@@ -29,9 +29,13 @@ type Server struct {
 }
 
 type General struct {
-	OpenAIEndpoint string `json:"openai_endpoint"`
-	OpenAIKey      string `json:"openai_key"`
-	Env            string `json:"env"`
+	EmbeddingDimension   int64  `json:"embedding_dimension"`
+	OpenAIEndpoint       string `json:"openai_endpoint"`
+	OpenAIKey            string `json:"openai_key"`
+	GeminiAPIKey         string `json:"gemini_api_key"`
+	MilvusAddress        string `json:"milvus_address"`
+	MilvusCollectionName string `json:"milvus_collection_name"`
+	Env                  string `json:"env"`
 }
 
 type S3 struct {

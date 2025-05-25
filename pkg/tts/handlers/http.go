@@ -66,3 +66,41 @@ func (t ttsServer) JoinMP3Files(c echo.Context) (err error) {
 
 	return response.SuccessResponse(c, http.StatusOK, out)
 }
+
+func (t ttsServer) AudioTranscript(c echo.Context) (err error) {
+	ctx := c.Request().Context()
+	var request query.AudioTranscriptQuery
+	if err = pkgUtil.BindRequestAndValidate(c, &request); err != nil {
+		return pkgError.CreateCustomError(c, http.StatusBadRequest, "bad-request", err.Error())
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	request.File = file
+	out, err := t.apps.Queries.AudioTranscriptHandler.Handle(ctx, request)
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	return response.SuccessResponse(c, http.StatusOK, out)
+}
+
+func (t ttsServer) AudioSummarize(c echo.Context) (err error) {
+	ctx := c.Request().Context()
+	var request query.AudioSummarizeQuery
+	if err = pkgUtil.BindRequestAndValidate(c, &request); err != nil {
+		return pkgError.CreateCustomError(c, http.StatusBadRequest, "bad-request", err.Error())
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	request.File = file
+	out, err := t.apps.Queries.AudioSummarizeHandler.Handle(ctx, request)
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	return response.SuccessResponse(c, http.StatusOK, out)
+}

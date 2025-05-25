@@ -95,3 +95,36 @@ func (t pdfServer) SummarizePdf(c echo.Context) (err error) {
 	}
 	return response.SuccessResponse(c, http.StatusOK, out)
 }
+
+func (t pdfServer) UploadContextPdf(c echo.Context) (err error) {
+	ctx := c.Request().Context()
+	var request command.UpdateContextPdfQuery
+	if err = pkgUtil.BindRequestAndValidate(c, &request); err != nil {
+		return pkgError.CreateCustomError(c, http.StatusBadRequest, "bad-request", err.Error())
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	request.File = file
+	err = t.apps.Commands.UploadContextPdf.Handle(ctx, request)
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	return response.SuccessResponse(c, http.StatusOK, nil)
+}
+
+func (t pdfServer) ChatContext(c echo.Context) (err error) {
+	ctx := c.Request().Context()
+	var request query.GenerateContextQuery
+	if err = pkgUtil.BindRequestAndValidate(c, &request); err != nil {
+		return pkgError.CreateCustomError(c, http.StatusBadRequest, "bad-request", err.Error())
+	}
+
+	out, err := t.apps.Queries.GenerateContextHandler.Handle(ctx, request)
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	return response.SuccessResponse(c, http.StatusOK, out)
+}

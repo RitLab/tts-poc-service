@@ -92,6 +92,12 @@ type ClientInterface interface {
 
 	TextToSpeech(ctx context.Context, body TextToSpeechJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AudioSummarizeWithBody request with any body
+	AudioSummarizeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AudioTranscriptWithBody request with any body
+	AudioTranscriptWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// JoinMP3FilesWithBody request with any body
 	JoinMP3FilesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -115,6 +121,30 @@ func (c *Client) TextToSpeechWithBody(ctx context.Context, contentType string, b
 
 func (c *Client) TextToSpeech(ctx context.Context, body TextToSpeechJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewTextToSpeechRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AudioSummarizeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAudioSummarizeRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AudioTranscriptWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAudioTranscriptRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -182,6 +212,64 @@ func NewTextToSpeechRequestWithBody(server string, contentType string, body io.R
 	}
 
 	operationPath := fmt.Sprintf("/api/tts")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAudioSummarizeRequestWithBody generates requests for AudioSummarize with any type of body
+func NewAudioSummarizeRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/tts/audio-summarize")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAudioTranscriptRequestWithBody generates requests for AudioTranscript with any type of body
+func NewAudioTranscriptRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/tts/audio-transcript")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -318,6 +406,12 @@ type ClientWithResponsesInterface interface {
 
 	TextToSpeechWithResponse(ctx context.Context, body TextToSpeechJSONRequestBody, reqEditors ...RequestEditorFn) (*TextToSpeechResponse, error)
 
+	// AudioSummarizeWithBodyWithResponse request with any body
+	AudioSummarizeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AudioSummarizeResponse, error)
+
+	// AudioTranscriptWithBodyWithResponse request with any body
+	AudioTranscriptWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AudioTranscriptResponse, error)
+
 	// JoinMP3FilesWithBodyWithResponse request with any body
 	JoinMP3FilesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*JoinMP3FilesResponse, error)
 
@@ -345,6 +439,54 @@ func (r TextToSpeechResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r TextToSpeechResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AudioSummarizeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AudioSummarizeResponse
+	JSON400      *Error
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r AudioSummarizeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AudioSummarizeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AudioTranscriptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AudioTranscriptResponse
+	JSON400      *Error
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r AudioTranscriptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AudioTranscriptResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -416,6 +558,24 @@ func (c *ClientWithResponses) TextToSpeechWithResponse(ctx context.Context, body
 	return ParseTextToSpeechResponse(rsp)
 }
 
+// AudioSummarizeWithBodyWithResponse request with arbitrary body returning *AudioSummarizeResponse
+func (c *ClientWithResponses) AudioSummarizeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AudioSummarizeResponse, error) {
+	rsp, err := c.AudioSummarizeWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAudioSummarizeResponse(rsp)
+}
+
+// AudioTranscriptWithBodyWithResponse request with arbitrary body returning *AudioTranscriptResponse
+func (c *ClientWithResponses) AudioTranscriptWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AudioTranscriptResponse, error) {
+	rsp, err := c.AudioTranscriptWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAudioTranscriptResponse(rsp)
+}
+
 // JoinMP3FilesWithBodyWithResponse request with arbitrary body returning *JoinMP3FilesResponse
 func (c *ClientWithResponses) JoinMP3FilesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*JoinMP3FilesResponse, error) {
 	rsp, err := c.JoinMP3FilesWithBody(ctx, contentType, body, reqEditors...)
@@ -458,6 +618,86 @@ func ParseTextToSpeechResponse(rsp *http.Response) (*TextToSpeechResponse, error
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest TtsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAudioSummarizeResponse parses an HTTP response from a AudioSummarizeWithResponse call
+func ParseAudioSummarizeResponse(rsp *http.Response) (*AudioSummarizeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AudioSummarizeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AudioSummarizeResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAudioTranscriptResponse parses an HTTP response from a AudioTranscriptWithResponse call
+func ParseAudioTranscriptResponse(rsp *http.Response) (*AudioTranscriptResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AudioTranscriptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AudioTranscriptResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

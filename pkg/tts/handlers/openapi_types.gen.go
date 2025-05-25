@@ -7,6 +7,30 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// AudioSummarizeRequest defines model for AudioSummarizeRequest.
+type AudioSummarizeRequest struct {
+	File openapi_types.File `json:"file" validate:"required"`
+}
+
+// AudioSummarizeResponse defines model for AudioSummarizeResponse.
+type AudioSummarizeResponse struct {
+	Data *struct {
+		Output *string `json:"output,omitempty"`
+	} `json:"data,omitempty"`
+}
+
+// AudioTranscriptRequest defines model for AudioTranscriptRequest.
+type AudioTranscriptRequest struct {
+	File openapi_types.File `json:"file" validate:"required"`
+}
+
+// AudioTranscriptResponse defines model for AudioTranscriptResponse.
+type AudioTranscriptResponse struct {
+	Data *struct {
+		Output *string `json:"output,omitempty"`
+	} `json:"data,omitempty"`
+}
+
 // Error defines model for Error.
 type Error struct {
 	Message string `json:"message"`
@@ -39,6 +63,12 @@ type TtsResponse struct {
 
 // TextToSpeechJSONRequestBody defines body for TextToSpeech for application/json ContentType.
 type TextToSpeechJSONRequestBody = TtsRequest
+
+// AudioSummarizeMultipartRequestBody defines body for AudioSummarize for multipart/form-data ContentType.
+type AudioSummarizeMultipartRequestBody = AudioSummarizeRequest
+
+// AudioTranscriptMultipartRequestBody defines body for AudioTranscript for multipart/form-data ContentType.
+type AudioTranscriptMultipartRequestBody = AudioTranscriptRequest
 
 // JoinMP3FilesMultipartRequestBody defines body for JoinMP3Files for multipart/form-data ContentType.
 type JoinMP3FilesMultipartRequestBody = JoinMP3Files

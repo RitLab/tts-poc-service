@@ -13,6 +13,7 @@ import (
 	"tts-poc-service/lib/baselogger"
 	"tts-poc-service/lib/connection"
 	"tts-poc-service/lib/database"
+	"tts-poc-service/lib/gemini_ai"
 	"tts-poc-service/lib/htgo"
 	"tts-poc-service/lib/storage"
 	"tts-poc-service/lib/validator"
@@ -43,19 +44,21 @@ func setHandler(dep Dependency) Handler {
 	return Handler{
 		HealthCheck:    healthHandler.NewHealthCheckHandler(time.Now()),
 		ConfigServer:   configHandler.NewConfigHttpHandler(dep.logger, configApp.NewConfigService(dep.logger)),
-		TtsService:     handlers.NewTtsServer(app.NewTtsService(dep.logger, dep.player, dep.storage)),
+		TtsService:     handlers.NewTtsServer(app.NewTtsService(dep.logger, dep.player, dep.storage, dep.ai)),
 		SupportService: supportHandler.NewSupportServer(supportApp.NewSupportService(dep.logger, dep.db)),
-		PdfService:     pdfHandler.NewPdfServer(pdfApp.NewPdfService(dep.logger, dep.storage, dep.db, dep.http)),
+		PdfService:     pdfHandler.NewPdfServer(pdfApp.NewPdfService(dep.logger, dep.storage, dep.db, dep.ai, dep.dbVector)),
 	}
 }
 
 type Dependency struct {
-	logger  *baselogger.Logger
-	db      *sql.DB
-	player  htgo.Player
-	storage storage.Storage
-	http    connection.HttpConnectionInterface
-	val     *validator.Validator
+	logger   *baselogger.Logger
+	db       *sql.DB
+	player   htgo.Player
+	storage  storage.Storage
+	http     connection.HttpConnectionInterface
+	ai       gemini_ai.GenAIMethod
+	dbVector database.VectorDatabase
+	val      *validator.Validator
 }
 
 func newDependency(ctx context.Context) Dependency {
@@ -80,13 +83,20 @@ func newDependency(ctx context.Context) Dependency {
 	}
 	httpCon := connection.NewHttpConnection(httpClient, logger)
 
+	iaMethod := gemini_ai.NewGenAI(ctx)
+
+	dbVector := database.NewMilvusClient(ctx, logger)
+	dbVector.CreateEmbeddedCollection(ctx, config.Config.General.MilvusCollectionName)
+
 	return Dependency{
-		logger:  logger,
-		db:      db,
-		player:  player,
-		storage: s3,
-		http:    httpCon,
-		val:     val,
+		logger:   logger,
+		db:       db,
+		player:   player,
+		storage:  s3,
+		http:     httpCon,
+		ai:       iaMethod,
+		dbVector: dbVector,
+		val:      val,
 	}
 }
 
