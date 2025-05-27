@@ -69,7 +69,17 @@ func (g updateContextPdfRepository) Handle(ctx context.Context, in UpdateContext
 			g.logger.Hashcode(ctx).Error(fmt.Errorf("error get embedding: %w", err))
 			return err
 		}
+		err = g.dbVector.CheckSimilarity(ctx, config.Config.General.MilvusCollectionName, embedding)
+		if err != nil {
+			g.logger.Hashcode(ctx).Error(fmt.Errorf("error check similarity: %w", err))
+			continue
+		}
+
 		embeddings = append(embeddings, embedding)
+	}
+
+	if len(embeddings) == 0 {
+		return nil
 	}
 
 	err = g.dbVector.StoreEmbedding(ctx, database.Embedding{

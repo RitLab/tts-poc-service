@@ -24,6 +24,7 @@ type VectorDatabase interface {
 	CreateEmbeddedCollection(ctx context.Context, collectionName string) error
 	StoreEmbedding(ctx context.Context, payload Embedding, collectionName string) error
 	SearchEmbedding(ctx context.Context, collectionName string, queryEmbedding []float32, topK int) (string, error)
+	CheckSimilarity(ctx context.Context, collectionName string, queryEmbedding []float32) error
 }
 
 type vectorClient struct {
@@ -138,4 +139,35 @@ func (v *vectorClient) SearchEmbedding(ctx context.Context, collectionName strin
 		contextText = append(contextText, chunkText)
 	}
 	return strings.Join(contextText, " "), nil
+}
+
+func (v *vectorClient) CheckSimilarity(ctx context.Context, collectionName string, queryEmbedding []float32) error {
+	searchParam, err := entity.NewIndexFlatSearchParam()
+	if err != nil {
+		return fmt.Errorf("failed to create search params: %w", err)
+	}
+
+	results, err := v.Search(
+		ctx,
+		collectionName,
+		[]string{},
+		"",
+		[]string{"id"},
+		[]entity.Vector{entity.FloatVector(queryEmbedding)},
+		"embedding",   // Use the "embedding" field for the search.
+		entity.COSINE, // Use cosine similarity.
+		1,
+		searchParam,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to search: %w", err)
+	}
+
+	if len(results) == 0 || results[0].Scores[0] > 0 {
+		score := results[0].Scores[0]
+		if score >= 0.98 {
+			return fmt.Errorf("duplicate chunk found with ID: %s", results[0].IDs.FieldData().String())
+		}
+	}
+	return nil
 }
