@@ -12,6 +12,8 @@ var embedModel = "text-embedding-004"
 type GenAIMethod interface {
 	SummarizeText(ctx context.Context, pdfBytes string) (string, error)
 	GetTranscriptAudio(ctx context.Context, filepath string) (string, error)
+	SummarizeYoutubeUrl(ctx context.Context, youtubeUrl string) (string, error)
+	TranscriptYoutubeUrl(ctx context.Context, youtubeUrl string) (string, error)
 	TextEmbedding(ctx context.Context, chunk string) ([]float32, error)
 	GenerateFromContext(ctx context.Context, contextText, question string) (string, error)
 }
@@ -73,6 +75,54 @@ func (g *genAI) GetTranscriptAudio(ctx context.Context, filepath string) (string
 	result, err := g.c.Models.GenerateContent(
 		ctx,
 		"gemini-2.0-flash",
+		contents,
+		nil,
+	)
+	if err != nil {
+		return "", err
+	}
+	return result.Text(), nil
+}
+
+func (g *genAI) SummarizeYoutubeUrl(ctx context.Context, youtubeUrl string) (string, error) {
+	parts := []*genai.Part{
+		&genai.Part{
+			FileData: &genai.FileData{FileURI: youtubeUrl, MIMEType: "video/*"},
+		},
+		genai.NewPartFromText("Summarize the video"),
+	}
+
+	contents := []*genai.Content{
+		genai.NewContentFromParts(parts, genai.RoleUser),
+	}
+
+	result, err := g.c.Models.GenerateContent(
+		ctx,
+		"gemini-2.5-flash-preview-05-20",
+		contents,
+		nil,
+	)
+	if err != nil {
+		return "", err
+	}
+	return result.Text(), nil
+}
+
+func (g *genAI) TranscriptYoutubeUrl(ctx context.Context, youtubeUrl string) (string, error) {
+	parts := []*genai.Part{
+		&genai.Part{
+			FileData: &genai.FileData{FileURI: youtubeUrl, MIMEType: "video/*"},
+		},
+		genai.NewPartFromText("Transcribe the video"),
+	}
+
+	contents := []*genai.Content{
+		genai.NewContentFromParts(parts, genai.RoleUser),
+	}
+
+	result, err := g.c.Models.GenerateContent(
+		ctx,
+		"gemini-2.5-flash-preview-05-20",
 		contents,
 		nil,
 	)

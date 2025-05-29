@@ -105,6 +105,16 @@ type ClientInterface interface {
 	ReadTextToSpeechWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ReadTextToSpeech(ctx context.Context, body ReadTextToSpeechJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// VideoSummarizeWithBody request with any body
+	VideoSummarizeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	VideoSummarize(ctx context.Context, body VideoSummarizeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// VideoTranscriptWithBody request with any body
+	VideoTranscriptWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	VideoTranscript(ctx context.Context, body VideoTranscriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) TextToSpeechWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -181,6 +191,54 @@ func (c *Client) ReadTextToSpeechWithBody(ctx context.Context, contentType strin
 
 func (c *Client) ReadTextToSpeech(ctx context.Context, body ReadTextToSpeechJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewReadTextToSpeechRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) VideoSummarizeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewVideoSummarizeRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) VideoSummarize(ctx context.Context, body VideoSummarizeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewVideoSummarizeRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) VideoTranscriptWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewVideoTranscriptRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) VideoTranscript(ctx context.Context, body VideoTranscriptJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewVideoTranscriptRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -358,6 +416,86 @@ func NewReadTextToSpeechRequestWithBody(server string, contentType string, body 
 	return req, nil
 }
 
+// NewVideoSummarizeRequest calls the generic VideoSummarize builder with application/json body
+func NewVideoSummarizeRequest(server string, body VideoSummarizeJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewVideoSummarizeRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewVideoSummarizeRequestWithBody generates requests for VideoSummarize with any type of body
+func NewVideoSummarizeRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/tts/video-summarize")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewVideoTranscriptRequest calls the generic VideoTranscript builder with application/json body
+func NewVideoTranscriptRequest(server string, body VideoTranscriptJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewVideoTranscriptRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewVideoTranscriptRequestWithBody generates requests for VideoTranscript with any type of body
+func NewVideoTranscriptRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/tts/video-transcript")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -419,6 +557,16 @@ type ClientWithResponsesInterface interface {
 	ReadTextToSpeechWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ReadTextToSpeechResponse, error)
 
 	ReadTextToSpeechWithResponse(ctx context.Context, body ReadTextToSpeechJSONRequestBody, reqEditors ...RequestEditorFn) (*ReadTextToSpeechResponse, error)
+
+	// VideoSummarizeWithBodyWithResponse request with any body
+	VideoSummarizeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VideoSummarizeResponse, error)
+
+	VideoSummarizeWithResponse(ctx context.Context, body VideoSummarizeJSONRequestBody, reqEditors ...RequestEditorFn) (*VideoSummarizeResponse, error)
+
+	// VideoTranscriptWithBodyWithResponse request with any body
+	VideoTranscriptWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VideoTranscriptResponse, error)
+
+	VideoTranscriptWithResponse(ctx context.Context, body VideoTranscriptJSONRequestBody, reqEditors ...RequestEditorFn) (*VideoTranscriptResponse, error)
 }
 
 type TextToSpeechResponse struct {
@@ -541,6 +689,54 @@ func (r ReadTextToSpeechResponse) StatusCode() int {
 	return 0
 }
 
+type VideoSummarizeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *VideoSummarizeResponse
+	JSON400      *Error
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r VideoSummarizeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r VideoSummarizeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type VideoTranscriptResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *VideoTranscriptResponse
+	JSON400      *Error
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r VideoTranscriptResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r VideoTranscriptResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // TextToSpeechWithBodyWithResponse request with arbitrary body returning *TextToSpeechResponse
 func (c *ClientWithResponses) TextToSpeechWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TextToSpeechResponse, error) {
 	rsp, err := c.TextToSpeechWithBody(ctx, contentType, body, reqEditors...)
@@ -600,6 +796,40 @@ func (c *ClientWithResponses) ReadTextToSpeechWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseReadTextToSpeechResponse(rsp)
+}
+
+// VideoSummarizeWithBodyWithResponse request with arbitrary body returning *VideoSummarizeResponse
+func (c *ClientWithResponses) VideoSummarizeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VideoSummarizeResponse, error) {
+	rsp, err := c.VideoSummarizeWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseVideoSummarizeResponse(rsp)
+}
+
+func (c *ClientWithResponses) VideoSummarizeWithResponse(ctx context.Context, body VideoSummarizeJSONRequestBody, reqEditors ...RequestEditorFn) (*VideoSummarizeResponse, error) {
+	rsp, err := c.VideoSummarize(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseVideoSummarizeResponse(rsp)
+}
+
+// VideoTranscriptWithBodyWithResponse request with arbitrary body returning *VideoTranscriptResponse
+func (c *ClientWithResponses) VideoTranscriptWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VideoTranscriptResponse, error) {
+	rsp, err := c.VideoTranscriptWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseVideoTranscriptResponse(rsp)
+}
+
+func (c *ClientWithResponses) VideoTranscriptWithResponse(ctx context.Context, body VideoTranscriptJSONRequestBody, reqEditors ...RequestEditorFn) (*VideoTranscriptResponse, error) {
+	rsp, err := c.VideoTranscript(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseVideoTranscriptResponse(rsp)
 }
 
 // ParseTextToSpeechResponse parses an HTTP response from a TextToSpeechWithResponse call
@@ -778,6 +1008,86 @@ func ParseReadTextToSpeechResponse(rsp *http.Response) (*ReadTextToSpeechRespons
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Success
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseVideoSummarizeResponse parses an HTTP response from a VideoSummarizeWithResponse call
+func ParseVideoSummarizeResponse(rsp *http.Response) (*VideoSummarizeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &VideoSummarizeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest VideoSummarizeResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseVideoTranscriptResponse parses an HTTP response from a VideoTranscriptWithResponse call
+func ParseVideoTranscriptResponse(rsp *http.Response) (*VideoTranscriptResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &VideoTranscriptResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest VideoTranscriptResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

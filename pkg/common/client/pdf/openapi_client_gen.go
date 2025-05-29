@@ -4,6 +4,7 @@
 package pdf
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -89,6 +90,8 @@ type ClientInterface interface {
 	// ChatContextWithBody request with any body
 	ChatContextWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	ChatContext(ctx context.Context, body ChatContextJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// JoinPdfFilesWithBody request with any body
 	JoinPdfFilesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -107,6 +110,18 @@ type ClientInterface interface {
 
 func (c *Client) ChatContextWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewChatContextRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChatContext(ctx context.Context, body ChatContextJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChatContextRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -175,6 +190,17 @@ func (c *Client) VerifyPdfFileWithBody(ctx context.Context, contentType string, 
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewChatContextRequest calls the generic ChatContext builder with application/json body
+func NewChatContextRequest(server string, body ChatContextJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewChatContextRequestWithBody(server, "application/json", bodyReader)
 }
 
 // NewChatContextRequestWithBody generates requests for ChatContext with any type of body
@@ -397,6 +423,8 @@ type ClientWithResponsesInterface interface {
 	// ChatContextWithBodyWithResponse request with any body
 	ChatContextWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatContextResponse, error)
 
+	ChatContextWithResponse(ctx context.Context, body ChatContextJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatContextResponse, error)
+
 	// JoinPdfFilesWithBodyWithResponse request with any body
 	JoinPdfFilesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*JoinPdfFilesResponse, error)
 
@@ -560,6 +588,14 @@ func (r VerifyPdfFileResponse) StatusCode() int {
 // ChatContextWithBodyWithResponse request with arbitrary body returning *ChatContextResponse
 func (c *ClientWithResponses) ChatContextWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatContextResponse, error) {
 	rsp, err := c.ChatContextWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChatContextResponse(rsp)
+}
+
+func (c *ClientWithResponses) ChatContextWithResponse(ctx context.Context, body ChatContextJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatContextResponse, error) {
+	rsp, err := c.ChatContext(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}

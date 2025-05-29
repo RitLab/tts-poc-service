@@ -24,6 +24,12 @@ type ServerInterface interface {
 	// Convert text to speech and response with sound
 	// (POST /api/tts/read)
 	ReadTextToSpeech(ctx echo.Context) error
+	// Create summarize based on video youtube URL
+	// (POST /api/tts/video-summarize)
+	VideoSummarize(ctx echo.Context) error
+	// Create transcript based on video youtube URL
+	// (POST /api/tts/video-transcript)
+	VideoTranscript(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -76,6 +82,24 @@ func (w *ServerInterfaceWrapper) ReadTextToSpeech(ctx echo.Context) error {
 	return err
 }
 
+// VideoSummarize converts echo context to params.
+func (w *ServerInterfaceWrapper) VideoSummarize(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.VideoSummarize(ctx)
+	return err
+}
+
+// VideoTranscript converts echo context to params.
+func (w *ServerInterfaceWrapper) VideoTranscript(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.VideoTranscript(ctx)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -109,5 +133,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/api/tts/audio-transcript", wrapper.AudioTranscript)
 	router.POST(baseURL+"/api/tts/join", wrapper.JoinMP3Files)
 	router.POST(baseURL+"/api/tts/read", wrapper.ReadTextToSpeech)
+	router.POST(baseURL+"/api/tts/video-summarize", wrapper.VideoSummarize)
+	router.POST(baseURL+"/api/tts/video-transcript", wrapper.VideoTranscript)
 
 }

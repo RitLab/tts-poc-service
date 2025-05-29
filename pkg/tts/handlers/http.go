@@ -104,3 +104,31 @@ func (t ttsServer) AudioSummarize(c echo.Context) (err error) {
 	}
 	return response.SuccessResponse(c, http.StatusOK, out)
 }
+
+func (t ttsServer) VideoTranscript(c echo.Context) (err error) {
+	ctx := c.Request().Context()
+	var request query.VideoTranscriptQuery
+	if err = pkgUtil.BindRequestAndValidate(c, &request); err != nil {
+		return pkgError.CreateCustomError(c, http.StatusBadRequest, "bad-request", err.Error())
+	}
+
+	out, err := t.apps.Queries.VideoTranscriptHandler.Handle(ctx, request)
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	return response.SuccessResponse(c, http.StatusOK, out)
+}
+
+func (t ttsServer) VideoSummarize(c echo.Context) (err error) {
+	ctx := c.Request().Context()
+	var request query.VideoSummarizeQuery
+	if err = pkgUtil.BindRequestAndValidate(c, &request); err != nil {
+		return pkgError.CreateCustomError(c, http.StatusBadRequest, "bad-request", err.Error())
+	}
+
+	out, err := t.apps.Queries.VideoSummarizeHandler.Handle(ctx, request)
+	if err != nil {
+		return pkgError.CreateError(c, err.Error())
+	}
+	return response.SuccessResponse(c, http.StatusOK, out)
+}

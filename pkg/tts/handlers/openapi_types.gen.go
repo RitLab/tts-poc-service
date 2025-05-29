@@ -61,6 +61,32 @@ type TtsResponse struct {
 	} `json:"data,omitempty"`
 }
 
+// VideoSummarizeRequest defines model for VideoSummarizeRequest.
+type VideoSummarizeRequest struct {
+	// Url input youtube URL
+	Url string `json:"url" validate:"required"`
+}
+
+// VideoSummarizeResponse defines model for VideoSummarizeResponse.
+type VideoSummarizeResponse struct {
+	Data *struct {
+		Output *string `json:"output,omitempty"`
+	} `json:"data,omitempty"`
+}
+
+// VideoTranscriptRequest defines model for VideoTranscriptRequest.
+type VideoTranscriptRequest struct {
+	// Url input youtube URL
+	Url string `json:"url" validate:"required"`
+}
+
+// VideoTranscriptResponse defines model for VideoTranscriptResponse.
+type VideoTranscriptResponse struct {
+	Data *struct {
+		Output *string `json:"output,omitempty"`
+	} `json:"data,omitempty"`
+}
+
 // TextToSpeechJSONRequestBody defines body for TextToSpeech for application/json ContentType.
 type TextToSpeechJSONRequestBody = TtsRequest
 
@@ -75,3 +101,9 @@ type JoinMP3FilesMultipartRequestBody = JoinMP3Files
 
 // ReadTextToSpeechJSONRequestBody defines body for ReadTextToSpeech for application/json ContentType.
 type ReadTextToSpeechJSONRequestBody = TtsRequest
+
+// VideoSummarizeJSONRequestBody defines body for VideoSummarize for application/json ContentType.
+type VideoSummarizeJSONRequestBody = VideoSummarizeRequest
+
+// VideoTranscriptJSONRequestBody defines body for VideoTranscript for application/json ContentType.
+type VideoTranscriptJSONRequestBody = VideoTranscriptRequest

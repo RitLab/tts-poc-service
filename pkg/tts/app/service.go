@@ -18,6 +18,8 @@ type TtsQueries struct {
 	JoinMp3FilesHandler     query.JoinMp3FilesHandler
 	AudioTranscriptHandler  query.AudioTranscriptHandler
 	AudioSummarizeHandler   query.AudioSummarizeHandler
+	VideoTranscriptHandler  query.VideoTranscriptHandler
+	VideoSummarizeHandler   query.VideoSummarizeHandler
 }
 
 func NewTtsService(log *baselogger.Logger, player htgo.Player, s3 storage.Storage, ai gemini_ai.GenAIMethod) TtService {
@@ -28,6 +30,8 @@ func NewTtsService(log *baselogger.Logger, player htgo.Player, s3 storage.Storag
 			JoinMp3FilesHandler:     query.NewJoinMp3FilesRepository(s3, log),
 			AudioTranscriptHandler:  query.NewAudioTranscriptRepository(ai, log),
 			AudioSummarizeHandler:   query.NewAudioSummarizeRepository(ai, log),
+			VideoTranscriptHandler:  query.NewVideoTranscriptRepository(ai, log),
+			VideoSummarizeHandler:   query.NewVideoSummarizeRepository(ai, log),
 		},
 	}
 }

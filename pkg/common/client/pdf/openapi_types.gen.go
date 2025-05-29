@@ -71,8 +71,8 @@ type VerifyPdfFile struct {
 	Key  string             `json:"key" validate:"required"`
 }
 
-// ChatContextMultipartRequestBody defines body for ChatContext for multipart/form-data ContentType.
-type ChatContextMultipartRequestBody = ChatContextRequest
+// ChatContextJSONRequestBody defines body for ChatContext for application/json ContentType.
+type ChatContextJSONRequestBody = ChatContextRequest
 
 // JoinPdfFilesMultipartRequestBody defines body for JoinPdfFiles for multipart/form-data ContentType.
 type JoinPdfFilesMultipartRequestBody = JoinPdfFiles

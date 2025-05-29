@@ -179,6 +179,68 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/tts/video-transcript:
+    post:
+      summary: Create transcript based on video youtube URL
+      operationId: videoTranscript
+      requestBody:
+        description: Create transcript from youtube URL
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoTranscriptRequest'
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoTranscriptResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tts/video-summarize:
+    post:
+      summary: Create summarize based on video youtube URL
+      operationId: videoSummarize
+      requestBody:
+        description: Create summarize from youtube URL
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoSummarizeRequest'
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoSummarizeResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
     TtsRequest:
@@ -253,6 +315,50 @@ components:
             validate: required
 
     AudioSummarizeResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            output:
+              type: string
+              example: "summarize"
+
+    VideoTranscriptRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          example: https://youtube.com
+          description: input youtube URL
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    VideoTranscriptResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            output:
+              type: string
+              example: "transcript"
+
+    VideoSummarizeRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          example: https://youtube.com
+          description: input youtube URL
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    VideoSummarizeResponse:
       type: object
       properties:
         data:

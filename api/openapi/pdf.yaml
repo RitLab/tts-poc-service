@@ -193,12 +193,9 @@ paths:
         description: Chat with AI based on uploaded Pdf
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               $ref: '#/components/schemas/ChatContextRequest'
-            encoding:
-              files:
-                contentType: application/pdf
       responses:
         '200':
           description: Success Message
