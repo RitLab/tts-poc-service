@@ -3,9 +3,9 @@ package adapter
 import (
 	"context"
 	"database/sql"
-	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/aarondl/sqlboiler/v4/boil"
+	"tts-poc-service/database/models"
 	"tts-poc-service/lib/baselogger"
-	"tts-poc-service/models"
 )
 
 type supportRepository struct {

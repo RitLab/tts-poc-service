@@ -137,7 +137,7 @@ func NewInsertSupportRequestWithBody(server string, contentType string, body io.
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/tts/support")
+	operationPath := fmt.Sprintf("/support")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}

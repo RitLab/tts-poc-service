@@ -9,13 +9,13 @@ info:
     email: ritlabs1404@gmail.com
 
 servers:
-  - url: https://{hostname}
+  - url: https://{hostname}/api
     variables:
       hostname:
         default: localhost:7075
 
 paths:
-  /api/tts:
+  /tts:
     post:
       summary: Convert text to speech
       operationId: textToSpeech
@@ -262,6 +262,10 @@ components:
     TtsResponse:
       type: object
       properties:
+        status:
+          type: integer
+        message:
+          type: string
         data:
           type: object
           properties:
@@ -296,6 +300,10 @@ components:
     AudioTranscriptResponse:
       type: object
       properties:
+        status:
+          type: integer
+        message:
+          type: string
         data:
           type: object
           properties:
@@ -317,6 +325,10 @@ components:
     AudioSummarizeResponse:
       type: object
       properties:
+        status:
+          type: integer
+        message:
+          type: string
         data:
           type: object
           properties:
@@ -339,6 +351,10 @@ components:
     VideoTranscriptResponse:
       type: object
       properties:
+        status:
+          type: integer
+        message:
+          type: string
         data:
           type: object
           properties:
@@ -361,6 +377,10 @@ components:
     VideoSummarizeResponse:
       type: object
       properties:
+        status:
+          type: integer
+        message:
+          type: string
         data:
           type: object
           properties:
@@ -371,8 +391,11 @@ components:
     Success:
       type: object
       required:
+        - status
         - message
       properties:
+        status:
+          type: integer
         message:
           type: string
           example: "success!"
@@ -380,9 +403,12 @@ components:
     Error:
       type: object
       required:
+        - status
         - slug
         - message
       properties:
+        status:
+          type: integer
         slug:
           type: string
           example: "bad-request"

@@ -2,8 +2,9 @@ package command
 
 import (
 	"context"
+
+	"tts-poc-service/database/models"
 	"tts-poc-service/lib/baselogger"
-	"tts-poc-service/models"
 	"tts-poc-service/pkg/common/decorator"
 	"tts-poc-service/pkg/support/domain"
 )

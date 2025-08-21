@@ -212,7 +212,7 @@ func NewChatContextRequestWithBody(server string, contentType string, body io.Re
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/tts/chat-context")
+	operationPath := fmt.Sprintf("/chat-context")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -241,7 +241,7 @@ func NewJoinPdfFilesRequestWithBody(server string, contentType string, body io.R
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/tts/join-pdf")
+	operationPath := fmt.Sprintf("/join-pdf")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -270,7 +270,7 @@ func NewSignPdfFileRequestWithBody(server string, contentType string, body io.Re
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/tts/sign-pdf")
+	operationPath := fmt.Sprintf("/sign-pdf")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -299,7 +299,7 @@ func NewSummarizePdfRequestWithBody(server string, contentType string, body io.R
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/tts/summarize-pdf")
+	operationPath := fmt.Sprintf("/summarize-pdf")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -328,7 +328,7 @@ func NewUploadContextPdfRequestWithBody(server string, contentType string, body 
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/tts/upload-context-pdf")
+	operationPath := fmt.Sprintf("/upload-context-pdf")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -357,7 +357,7 @@ func NewVerifyPdfFileRequestWithBody(server string, contentType string, body io.
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/tts/verify-pdf")
+	operationPath := fmt.Sprintf("/verify-pdf")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}

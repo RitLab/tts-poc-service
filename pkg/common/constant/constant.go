@@ -13,4 +13,5 @@ const (
 
 	AUDIO_FOLDER = "audio"
 	PDF_FOLDER   = "pdf"
+	IMAGE_FOLDER = "generated_image"
 )

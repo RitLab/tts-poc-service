@@ -10,22 +10,22 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Chat Context
-	// (POST /api/tts/chat-context)
+	// (POST /chat-context)
 	ChatContext(ctx echo.Context) error
 	// Join pdf file into one file
-	// (POST /api/tts/join-pdf)
+	// (POST /join-pdf)
 	JoinPdfFiles(ctx echo.Context) error
 	// Sign pdf file
-	// (POST /api/tts/sign-pdf)
+	// (POST /sign-pdf)
 	SignPdfFile(ctx echo.Context) error
 	// Summarize Pdf Text
-	// (POST /api/tts/summarize-pdf)
+	// (POST /summarize-pdf)
 	SummarizePdf(ctx echo.Context) error
 	// Upload Pdf Context
-	// (POST /api/tts/upload-context-pdf)
+	// (POST /upload-context-pdf)
 	UploadContextPdf(ctx echo.Context) error
 	// Verify pdf file
-	// (POST /api/tts/verify-pdf)
+	// (POST /verify-pdf)
 	VerifyPdfFile(ctx echo.Context) error
 }
 
@@ -116,11 +116,11 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.POST(baseURL+"/api/tts/chat-context", wrapper.ChatContext)
-	router.POST(baseURL+"/api/tts/join-pdf", wrapper.JoinPdfFiles)
-	router.POST(baseURL+"/api/tts/sign-pdf", wrapper.SignPdfFile)
-	router.POST(baseURL+"/api/tts/summarize-pdf", wrapper.SummarizePdf)
-	router.POST(baseURL+"/api/tts/upload-context-pdf", wrapper.UploadContextPdf)
-	router.POST(baseURL+"/api/tts/verify-pdf", wrapper.VerifyPdfFile)
+	router.POST(baseURL+"/chat-context", wrapper.ChatContext)
+	router.POST(baseURL+"/join-pdf", wrapper.JoinPdfFiles)
+	router.POST(baseURL+"/sign-pdf", wrapper.SignPdfFile)
+	router.POST(baseURL+"/summarize-pdf", wrapper.SummarizePdf)
+	router.POST(baseURL+"/upload-context-pdf", wrapper.UploadContextPdf)
+	router.POST(baseURL+"/verify-pdf", wrapper.VerifyPdfFile)
 
 }

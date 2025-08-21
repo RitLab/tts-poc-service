@@ -9,9 +9,6 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Convert text to speech
-	// (POST /api/tts)
-	TextToSpeech(ctx echo.Context) error
 	// Create summarize based on audio file
 	// (POST /api/tts/audio-summarize)
 	AudioSummarize(ctx echo.Context) error
@@ -30,20 +27,14 @@ type ServerInterface interface {
 	// Create transcript based on video youtube URL
 	// (POST /api/tts/video-transcript)
 	VideoTranscript(ctx echo.Context) error
+	// Convert text to speech
+	// (POST /tts)
+	TextToSpeech(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
-}
-
-// TextToSpeech converts echo context to params.
-func (w *ServerInterfaceWrapper) TextToSpeech(ctx echo.Context) error {
-	var err error
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.TextToSpeech(ctx)
-	return err
 }
 
 // AudioSummarize converts echo context to params.
@@ -100,6 +91,15 @@ func (w *ServerInterfaceWrapper) VideoTranscript(ctx echo.Context) error {
 	return err
 }
 
+// TextToSpeech converts echo context to params.
+func (w *ServerInterfaceWrapper) TextToSpeech(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.TextToSpeech(ctx)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -128,12 +128,12 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.POST(baseURL+"/api/tts", wrapper.TextToSpeech)
 	router.POST(baseURL+"/api/tts/audio-summarize", wrapper.AudioSummarize)
 	router.POST(baseURL+"/api/tts/audio-transcript", wrapper.AudioTranscript)
 	router.POST(baseURL+"/api/tts/join", wrapper.JoinMP3Files)
 	router.POST(baseURL+"/api/tts/read", wrapper.ReadTextToSpeech)
 	router.POST(baseURL+"/api/tts/video-summarize", wrapper.VideoSummarize)
 	router.POST(baseURL+"/api/tts/video-transcript", wrapper.VideoTranscript)
+	router.POST(baseURL+"/tts", wrapper.TextToSpeech)
 
 }

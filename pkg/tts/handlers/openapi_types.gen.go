@@ -17,6 +17,8 @@ type AudioSummarizeResponse struct {
 	Data *struct {
 		Output *string `json:"output,omitempty"`
 	} `json:"data,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Status  *int    `json:"status,omitempty"`
 }
 
 // AudioTranscriptRequest defines model for AudioTranscriptRequest.
@@ -29,12 +31,15 @@ type AudioTranscriptResponse struct {
 	Data *struct {
 		Output *string `json:"output,omitempty"`
 	} `json:"data,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Status  *int    `json:"status,omitempty"`
 }
 
 // Error defines model for Error.
 type Error struct {
 	Message string `json:"message"`
 	Slug    string `json:"slug"`
+	Status  int    `json:"status"`
 }
 
 // JoinMP3Files defines model for JoinMP3Files.
@@ -45,6 +50,7 @@ type JoinMP3Files struct {
 // Success defines model for Success.
 type Success struct {
 	Message string `json:"message"`
+	Status  int    `json:"status"`
 }
 
 // TtsRequest defines model for TtsRequest.
@@ -59,6 +65,8 @@ type TtsResponse struct {
 	Data *struct {
 		Url *string `json:"url,omitempty"`
 	} `json:"data,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Status  *int    `json:"status,omitempty"`
 }
 
 // VideoSummarizeRequest defines model for VideoSummarizeRequest.
@@ -72,6 +80,8 @@ type VideoSummarizeResponse struct {
 	Data *struct {
 		Output *string `json:"output,omitempty"`
 	} `json:"data,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Status  *int    `json:"status,omitempty"`
 }
 
 // VideoTranscriptRequest defines model for VideoTranscriptRequest.
@@ -85,10 +95,9 @@ type VideoTranscriptResponse struct {
 	Data *struct {
 		Output *string `json:"output,omitempty"`
 	} `json:"data,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Status  *int    `json:"status,omitempty"`
 }
-
-// TextToSpeechJSONRequestBody defines body for TextToSpeech for application/json ContentType.
-type TextToSpeechJSONRequestBody = TtsRequest
 
 // AudioSummarizeMultipartRequestBody defines body for AudioSummarize for multipart/form-data ContentType.
 type AudioSummarizeMultipartRequestBody = AudioSummarizeRequest
@@ -107,3 +116,6 @@ type VideoSummarizeJSONRequestBody = VideoSummarizeRequest
 
 // VideoTranscriptJSONRequestBody defines body for VideoTranscript for application/json ContentType.
 type VideoTranscriptJSONRequestBody = VideoTranscriptRequest
+
+// TextToSpeechJSONRequestBody defines body for TextToSpeech for application/json ContentType.
+type TextToSpeechJSONRequestBody = TtsRequest

@@ -96,15 +96,6 @@ func (m *MinioHandler) PutObject(ctx context.Context, input *PutFileRequest) err
 	}
 	fileSize := fileInfo.Size()
 
-	//buffer := make([]byte, fileSize)
-	//_, err = file.Read(buffer)
-	//if err != nil {
-	//	m.log.Hashcode(ctx).Error(fmt.Errorf("failed to read file: %w", err))
-	//	return err
-	//}
-	//
-	//contentType := http.DetectContentType(buffer)
-
 	info, err := m.minio.PutObject(ctx, m.bucketName, input.Path, file, fileSize, minio.PutObjectOptions{ContentType: input.ContentType})
 	if err != nil {
 		m.log.Error(err)
@@ -136,7 +127,6 @@ func (m *MinioHandler) PreSignedGetObject(ctx context.Context, input *GetObjectR
 		m.log.Error(err)
 		return nil, err
 	}
-	m.log.Infof("Get object url: %s", url.String())
 	return url, err
 }
 

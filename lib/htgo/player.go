@@ -1,15 +1,18 @@
 package htgo
 
 import (
+	"fmt"
 	htgotts "github.com/Ritlab/htgo-tts"
 	handlers "github.com/Ritlab/htgo-tts/handlers"
 	"github.com/google/uuid"
 	"strings"
 	"tts-poc-service/pkg/common/constant"
+	"tts-poc-service/pkg/common/utils"
 )
 
 type PlayerInterface interface {
 	Save(text, lang string) ([]string, error)
+	SaveOneFile(text, lang, id string, pageNumber int) (string, error)
 	Play(text, lang string) error
 }
 
@@ -70,6 +73,21 @@ func (p *Player) Save(text, lang string) ([]string, error) {
 	}
 
 	return out, nil
+}
+
+func (p *Player) SaveOneFile(text, lang, id string, pageNumber int) (string, error) {
+	speech := htgotts.Speech{
+		Folder:   constant.AUDIO_FOLDER,
+		Language: lang,
+		Handler:  &handlers.Native{},
+	}
+	textWithoutMarkdown := utils.StripMarkdown(text)
+	file, err := speech.CreateSpeechFile(textWithoutMarkdown, fmt.Sprintf("audio-%s-%d", id, pageNumber))
+	if err != nil {
+		return "", err
+	}
+
+	return file, nil
 }
 
 func (p *Player) Play(text, lang string) error {

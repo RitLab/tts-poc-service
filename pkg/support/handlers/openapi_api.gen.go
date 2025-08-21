@@ -10,7 +10,7 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Insert support support API
-	// (POST /api/tts/support)
+	// (POST /support)
 	InsertSupport(ctx echo.Context) error
 }
 
@@ -56,6 +56,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.POST(baseURL+"/api/tts/support", wrapper.InsertSupport)
+	router.POST(baseURL+"/support", wrapper.InsertSupport)
 
 }

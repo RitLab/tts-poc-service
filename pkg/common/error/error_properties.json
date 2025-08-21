@@ -76,6 +76,12 @@
             "message": "Open AI API key not found"
         },
         "status": 400
+    },
+    "story_book_not_found": {
+        "body": {
+            "message": "Story not found"
+        },
+        "status": 400
     }
 }
 

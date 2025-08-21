@@ -4,7 +4,7 @@ import (
 	"crypto/ed25519"
 	"crypto/sha256"
 	"encoding/hex"
-	"tts-poc-service/models"
+	"tts-poc-service/database/models"
 )
 
 type Ed25519Key struct {

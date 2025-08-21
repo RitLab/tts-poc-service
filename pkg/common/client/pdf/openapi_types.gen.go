@@ -17,6 +17,8 @@ type ChatContextResponse struct {
 	Data *struct {
 		Output *string `json:"output,omitempty"`
 	} `json:"data,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Status  *int    `json:"status,omitempty"`
 }
 
 // ContextPdf defines model for ContextPdf.
@@ -28,6 +30,7 @@ type ContextPdf struct {
 type Error struct {
 	Message string `json:"message"`
 	Slug    string `json:"slug"`
+	Status  int    `json:"status"`
 }
 
 // JoinPdfFiles defines model for JoinPdfFiles.
@@ -44,6 +47,7 @@ type SignPdfFile struct {
 // Success defines model for Success.
 type Success struct {
 	Message string `json:"message"`
+	Status  int    `json:"status"`
 }
 
 // SummarizePdf defines model for SummarizePdf.
@@ -56,6 +60,8 @@ type SummarizeResponse struct {
 	Data *struct {
 		Output *string `json:"output,omitempty"`
 	} `json:"data,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Status  *int    `json:"status,omitempty"`
 }
 
 // TtsResponse defines model for TtsResponse.
@@ -63,6 +69,8 @@ type TtsResponse struct {
 	Data *struct {
 		Url *string `json:"url,omitempty"`
 	} `json:"data,omitempty"`
+	Message *string `json:"message,omitempty"`
+	Status  *int    `json:"status,omitempty"`
 }
 
 // VerifyPdfFile defines model for VerifyPdfFile.

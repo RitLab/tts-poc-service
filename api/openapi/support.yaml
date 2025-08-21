@@ -9,13 +9,13 @@ info:
     email: ritlabs1404@gmail.com
 
 servers:
-  - url: https://{hostname}/api
+  - url: https://{hostname}/api/tts
     variables:
       hostname:
         default: localhost:7075
 
 paths:
-  /api/tts/support:
+  /support:
     post:
       summary: Insert support support API
       operationId: insertSupport
@@ -75,8 +75,11 @@ components:
     Success:
       type: object
       required:
+        - status
         - message
       properties:
+        status:
+          type: integer
         message:
           type: string
           example: "success!"
@@ -84,9 +87,12 @@ components:
     Error:
       type: object
       required:
+        - status
         - slug
         - message
       properties:
+        status:
+          type: integer
         slug:
           type: string
           example: "bad-request"

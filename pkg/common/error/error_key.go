@@ -15,4 +15,5 @@ const (
 	SIGNATURE_NOT_FOUND          = "signature_not_found"
 	SIGNATURE_NOT_VALID          = "signature_not_valid"
 	APIKEY_NOT_VALID             = "apikey_not_valid"
+	STORY_BOOK_NOT_FOUND         = "story_book_not_found"
 )

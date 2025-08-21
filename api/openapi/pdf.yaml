@@ -9,13 +9,13 @@ info:
     email: ritlabs1404@gmail.com
 
 servers:
-  - url: https://{hostname}
+  - url: http://{hostname}/api/tts
     variables:
       hostname:
         default: localhost:7075
 
 paths:
-  /api/tts/join-pdf:
+  /join-pdf:
     post:
       summary: Join pdf file into one file
       operationId: joinPdfFiles
@@ -49,7 +49,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api/tts/sign-pdf:
+  /sign-pdf:
     post:
       summary: Sign pdf file
       operationId: signPdfFile
@@ -83,7 +83,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api/tts/verify-pdf:
+  /verify-pdf:
     post:
       summary: Verify pdf file
       operationId: verifyPdfFile
@@ -117,7 +117,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api/tts/summarize-pdf:
+  /summarize-pdf:
     post:
       summary: Summarize Pdf Text
       operationId: summarizePdf
@@ -151,7 +151,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api/tts/upload-context-pdf:
+  /upload-context-pdf:
     post:
       summary: Upload Pdf Context
       operationId: uploadContextPdf
@@ -185,7 +185,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api/tts/chat-context:
+  /chat-context:
     post:
       summary: Chat Context
       operationId: chatContext
@@ -221,6 +221,10 @@ components:
     TtsResponse:
       type: object
       properties:
+        status:
+          type: integer
+        message:
+          type: string
         data:
           type: object
           properties:
@@ -231,6 +235,10 @@ components:
     SummarizeResponse:
       type: object
       properties:
+        status:
+          type: integer
+        message:
+          type: string
         data:
           type: object
           properties:
@@ -315,6 +323,10 @@ components:
     ChatContextResponse:
       type: object
       properties:
+        status:
+          type: integer
+        message:
+          type: string
         data:
           type: object
           properties:
@@ -325,8 +337,11 @@ components:
     Success:
       type: object
       required:
+        - status
         - message
       properties:
+        status:
+          type: integer
         message:
           type: string
           example: "success!"
@@ -334,9 +349,12 @@ components:
     Error:
       type: object
       required:
+        - status
         - slug
         - message
       properties:
+        status:
+          type: integer
         slug:
           type: string
           example: "bad-request"

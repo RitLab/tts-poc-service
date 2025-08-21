@@ -23,6 +23,8 @@ import (
 	healthHandler "tts-poc-service/pkg/health_check/handler"
 	pdfApp "tts-poc-service/pkg/pdf/app"
 	pdfHandler "tts-poc-service/pkg/pdf/handlers"
+	storyApp "tts-poc-service/pkg/story/app"
+	storyHandler "tts-poc-service/pkg/story/handlers"
 	supportApp "tts-poc-service/pkg/support/app"
 	supportHandler "tts-poc-service/pkg/support/handlers"
 	"tts-poc-service/pkg/tts/app"
@@ -38,6 +40,7 @@ type Handler struct {
 	TtsService     handlers.ServerInterface
 	SupportService supportHandler.ServerInterface
 	PdfService     pdfHandler.ServerInterface
+	StoryService   storyHandler.ServerInterface
 }
 
 func setHandler(dep Dependency) Handler {
@@ -47,6 +50,7 @@ func setHandler(dep Dependency) Handler {
 		TtsService:     handlers.NewTtsServer(app.NewTtsService(dep.logger, dep.player, dep.storage, dep.ai)),
 		SupportService: supportHandler.NewSupportServer(supportApp.NewSupportService(dep.logger, dep.db)),
 		PdfService:     pdfHandler.NewPdfServer(pdfApp.NewPdfService(dep.logger, dep.storage, dep.db, dep.ai, dep.dbVector)),
+		StoryService:   storyHandler.NewStoryServer(storyApp.NewStoryService(dep.logger, dep.storage, dep.db, dep.ai, dep.player)),
 	}
 }
 
@@ -139,9 +143,10 @@ func NewServer(ctx context.Context) Server {
 	root.POST("/config/reload", hndler.ConfigServer.ReloadConfig)
 	root.GET("/config", hndler.ConfigServer.GetConfig)
 
-	handlers.RegisterHandlers(srvc, hndler.TtsService)
-	supportHandler.RegisterHandlers(srvc, hndler.SupportService)
-	pdfHandler.RegisterHandlers(srvc, hndler.PdfService)
+	handlers.RegisterHandlers(root, hndler.TtsService)
+	supportHandler.RegisterHandlers(root, hndler.SupportService)
+	pdfHandler.RegisterHandlers(root, hndler.PdfService)
+	storyHandler.RegisterHandlers(root, hndler.StoryService)
 
 	srvr := &http.Server{
 		Addr:         fmt.Sprintf(":%d", config.Config.Server.Port),

@@ -52,6 +52,7 @@ WORKDIR /app
 COPY --from=builder /app/tts /app/
 COPY --from=builder /app/audio/ /app/audio
 COPY --from=builder /app/pdf/ /app/pdf
+COPY --from=builder /app/generated_image/ /app/generated_image
 COPY --from=builder /app/public/ /app/public
 COPY --from=builder /app/api/ /app/api
 

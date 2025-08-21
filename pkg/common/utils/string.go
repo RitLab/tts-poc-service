@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"regexp"
 	"strings"
 )
@@ -66,4 +68,58 @@ func IsValidChunk(text string) bool {
 		return false
 	}
 	return true
+}
+
+func NewToken(n int) string {
+	b := make([]byte, n)
+	rand.Read(b)
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(b)
+}
+
+func GetJsonResponseOnly(input string) string {
+	// Extract JSON substring
+	start := strings.Index(input, "{")
+	end := strings.LastIndex(input, "}")
+	if start == -1 || end == -1 {
+		return ""
+	}
+	jsonStr := input[start : end+1]
+	return jsonStr
+}
+
+// StripMarkdown removes basic markdown formatting
+func StripMarkdown(s string) string {
+	// Remove bold/italic: *text*, **text**, _text_
+	re := regexp.MustCompile(`(\*|_){1,3}([^*_]+)(\*|_){1,3}`)
+	s = re.ReplaceAllString(s, "$2")
+
+	// Remove inline code: `code`
+	re = regexp.MustCompile("`([^`]+)`")
+	s = re.ReplaceAllString(s, "$1")
+
+	// Remove links: [text](url) → text
+	re = regexp.MustCompile(`\[(.*?)\]\(.*?\)`)
+	s = re.ReplaceAllString(s, "$1")
+
+	// Remove images: ![alt](url) → alt
+	re = regexp.MustCompile(`!\[(.*?)\]\(.*?\)`)
+	s = re.ReplaceAllString(s, "$1")
+
+	// Remove headings: # Title → Title
+	re = regexp.MustCompile(`(?m)^#+\s*`)
+	s = re.ReplaceAllString(s, "")
+
+	// Remove blockquotes: > quote
+	re = regexp.MustCompile(`(?m)^>\s?`)
+	s = re.ReplaceAllString(s, "")
+
+	// Remove unordered list markers: - item / * item / + item
+	re = regexp.MustCompile(`(?m)^\s*[-*+]\s+`)
+	s = re.ReplaceAllString(s, "")
+
+	// Remove ordered list markers: 1. item
+	re = regexp.MustCompile(`(?m)^\s*\d+\.\s+`)
+	s = re.ReplaceAllString(s, "")
+
+	return s
 }

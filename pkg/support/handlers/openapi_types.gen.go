@@ -7,11 +7,13 @@ package handlers
 type Error struct {
 	Message string `json:"message"`
 	Slug    string `json:"slug"`
+	Status  int    `json:"status"`
 }
 
 // Success defines model for Success.
 type Success struct {
 	Message string `json:"message"`
+	Status  int    `json:"status"`
 }
 
 // SupportRequest defines model for SupportRequest.

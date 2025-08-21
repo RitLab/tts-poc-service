@@ -1,3 +1,5 @@
+include .env
+
 .PHONY: openapi
 openapi: openapi_http
 
@@ -6,6 +8,7 @@ openapi_http:
 	@./scripts/openapi-http.sh tts pkg/tts/handlers handlers
 	@./scripts/openapi-http.sh support pkg/support/handlers handlers
 	@./scripts/openapi-http.sh pdf pkg/pdf/handlers handlers
+	@./scripts/openapi-http.sh story pkg/story/handlers handlers
 
 .PHONY: lint
 lint:
@@ -33,10 +36,17 @@ delete-old-image:
 
 .PHONY: migrate
 migrate-up:
-	 migrate -path=migration -database "mysql://app_user:superuser@tcp(localhost:3306)/tts" -verbose up
+	 migrate -path=migration -database $(DB) -verbose up
 
 migrate-down:
-	 migrate -path=migration -database "mysql://app_user:superuser@tcp(localhost:3306)/tts" -verbose down
+	 migrate -path=migration -database $(DB) -verbose down
+
+migrate-fix:
+	migrate -path=migration -database $(DB) force $(VERSION)
 
 migrate-create:
 	migrate create -ext=sql -dir=migration -seq $(ARGS)
+
+.PHONY: gen-database
+gen-database:
+	sqlboiler mysql --output ./database/models

@@ -2,7 +2,7 @@ package domain
 
 import (
 	"context"
-	"tts-poc-service/models"
+	"tts-poc-service/database/models"
 )
 
 type CommandRepository interface {

@@ -1,0 +1,271 @@
+openapi: "3.0.3"
+
+info:
+  version: 1.0.0
+  title: Support API
+  description: A simple API for generate story book.
+  contact:
+    name: Ritlabs
+    email: ritlabs1404@gmail.com
+
+servers:
+  - url: http://{hostname}/api/tts
+    variables:
+      hostname:
+        default: localhost:7075
+
+paths:
+  /story/generate:
+    post:
+      summary: Generate story book API
+      operationId: generateStory
+      requestBody:
+        description: Generate story payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateStoryBookRequest'
+      responses:
+        '201':
+          description: Success Generated Story Book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedStoryBookSuccessResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /story/list:
+    post:
+      summary: List story book API
+      operationId: listStory
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedStoryBookSuccessResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /story/get:
+    post:
+      summary: Get story book API
+      operationId: getStory
+      requestBody:
+        description: Get story payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetStoryBookRequest'
+      responses:
+        '200':
+          description: Success Message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetStoryBookSuccessResponse'
+        '400':
+          description: Invalid Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    GenerateStoryBookRequest:
+      type: object
+      required:
+        - total_pages
+        - character_name
+        - language
+        - theme
+      properties:
+        total_pages:
+          type: integer
+          example: 10
+          x-oapi-codegen-extra-tags:
+            validate: required
+        character_name:
+          type: string
+          example: "Hazen"
+          x-oapi-codegen-extra-tags:
+            validate: required
+        language:
+          type: string
+          example: "English"
+          x-oapi-codegen-extra-tags:
+            validate: required
+        theme:
+          type: string
+          example: "Hero"
+          x-oapi-codegen-extra-tags:
+            validate: required
+        context:
+          type: string
+          example: "Generate story book about loving animal"
+
+    GenerateStoryBookResponse:
+      type: object
+      required:
+        - page_number
+        - body
+        - image_url
+        - audio_url
+      properties:
+        page_number:
+          type: integer
+          example: 1
+        body:
+          type: string
+          example: "Title"
+        image_url:
+          type: string
+          example: "https://domain.url/to/file"
+        audio_url:
+          type: string
+          example: "https://domain.url/to/file"
+
+    GeneratedStoryBookSuccessResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/GenerateStoryBookResponse'
+
+    ListStoryBookResponse:
+      type: object
+      required:
+        - id
+        - title
+        - character_name
+        - language
+        - theme
+      properties:
+        id:
+          type: string
+          example: "uuid"
+        title:
+          type: string
+          example: "Story about Hazen"
+        character_name:
+          type: string
+          example: "Hazen"
+        language:
+          type: string
+          example: "English"
+        theme:
+          type: string
+          example: "Hero"
+
+    ListStoryBookSuccessResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListStoryBookResponse'
+
+    GetStoryBookRequest:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          example: "uuid"
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    GetStoryBookResponse:
+      type: object
+      required:
+        - id
+        - title
+        - character_name
+        - language
+        - theme
+        - story
+      properties:
+        id:
+          type: string
+          example: "uuid"
+        title:
+          type: string
+          example: "Story about Hazen"
+        character_name:
+          type: string
+          example: "Hazen"
+        language:
+          type: string
+          example: "English"
+        theme:
+          type: string
+          example: "Hero"
+        story:
+          type: object
+
+    GetStoryBookSuccessResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GetStoryBookResponse'
+
+    Error:
+      type: object
+      required:
+        - status
+        - slug
+        - message
+      properties:
+        status:
+          type: integer
+        slug:
+          type: string
+          example: "bad-request"
+        message:
+          type: string
+          example: "unexpected error"
